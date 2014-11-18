@@ -4276,6 +4276,7 @@ function Nx.Map:Update (elapsed)
 		end
 		self.Scale = self.RealScale
 	end
+
 	local plZX, plZY = GetPlayerMapPosition ("player")
 	if (Nx.Map.RMapId ~= Nx.Map.UpdateMapID) then
 		plZX = 0
