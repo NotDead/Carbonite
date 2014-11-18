@@ -2214,7 +2214,7 @@ function Nx.Map:MinimapUpdate()
 print("Indoorchange:", indoorChange," City? ", info.City, "Indoor? ", indoors)
 print("Bugchange:", bugChange," bug? ", bugged)
 			lOpts.NXMMFull = false
-			if indoors or bugged then
+			if (not info.City and indoors) or bugged then
 				lOpts.NXMMFull = true
 			end
 			self.MMMenuIFull:SetChecked (lOpts.NXMMFull)
@@ -4970,6 +4970,13 @@ function Nx.Map:SwitchRealMap (id)
 		self.InInstance = inInstance;
 		if instanceChange then
 			self.LOpts.NXMMFull = inInstance
+		end
+	else
+		if self:IsInstanceMap(id) then
+			s = self.Scale
+			self.Scale = 120.0
+		else
+			self.Scale = self.RealScale
 		end
 	end
 	local map = Nx.Map:GetMap (1)
