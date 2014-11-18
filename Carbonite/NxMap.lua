@@ -127,7 +127,9 @@ function Nx.Map:Init()
 	self.PlFactionNum = plFaction == "A" and 0 or 1
 	self.PlFactionShort = plFaction == "A" and "Ally" or "Horde"
 	Nx.Map.Indoors = false
-
+	Nx.Map.InBugged = false
+	Nx.Map.InInstance = false
+	
 	self.Maps = {}
 	self.Created = false
 
@@ -2194,6 +2196,8 @@ function Nx.Map:MinimapUpdate()
 			bugged = true
 		end
 	end
+	local bugChange = self.InBugged ~= bugged
+	self.InBugged = bugged;
 	if self.InstanceId then
 		al = 1
 	else
@@ -2206,22 +2210,15 @@ function Nx.Map:MinimapUpdate()
 		if Nx.InBG then
 			zoomType = 0
 		end
-		if indoorChange and Nx.db.profile.MiniMap.IndoorTogFullSize then
+		if (indoorChange and Nx.db.profile.MiniMap.IndoorTogFullSize) or (bugChange and Nx.db.profile.MiniMap.BuggedTogFullSize) then
+print("Indoorchange:", indoorChange," City? ", info.City, "Indoor? ", indoors)
+print("Bugchange:", bugChange," bug? ", bugged)
 			lOpts.NXMMFull = false
-			if not info.City and indoors then
+			if (not info.City and indoors) or bugged then
 				lOpts.NXMMFull = true
 			end
 			self.MMMenuIFull:SetChecked (lOpts.NXMMFull)
 			Nx.Menu:CheckUpdate (self.MMMenuIFull)
-		end
-		if Nx.db.profile.MiniMap.BuggedTogFullSize then
-			if bugged then
-				lOpts.NXMMFull=true
-			else
-				lOpts.NXMMFull=false
-			end
-			self.MMMenuIFull:SetChecked(lOpts.NXMMFull)
-			Nx.Menu:CheckUpdate(self.MMMenuIFull)
 		end
 		if zoomType == 0 then
 			al = 1
@@ -4968,9 +4965,11 @@ function Nx.Map:SwitchRealMap (id)
 	end
 
 	if Nx.db.profile.MiniMap.InstanceTogFullSize then
-		self.LOpts.NXMMFull = false
-		if self:IsInstanceMap (id) then
-			self.LOpts.NXMMFull = true
+		local inInstance = self:IsInstanceMap(id)
+		local instanceChange = self.InInstance ~= inInstance
+		self.InInstance = inInstance;
+		if instanceChange then
+			self.LOpts.NXMMFull = inInstance
 		end
 	end
 	local map = Nx.Map:GetMap (1)
