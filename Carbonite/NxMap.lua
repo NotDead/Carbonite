@@ -2214,7 +2214,7 @@ function Nx.Map:MinimapUpdate()
 print("Indoorchange:", indoorChange," City? ", info.City, "Indoor? ", indoors)
 print("Bugchange:", bugChange," bug? ", bugged)
 			lOpts.NXMMFull = false
-			if indoors or bugged then
+			if (not info.City and indoors) or bugged then
 				lOpts.NXMMFull = true
 			end
 			self.MMMenuIFull:SetChecked (lOpts.NXMMFull)
