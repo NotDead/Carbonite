@@ -4179,6 +4179,10 @@ function Nx.Map:Update (elapsed)
 		end
 		self.Scale = self.RealScale
 	end
+
+        if not WorldMapFrame:IsShown() then
+		SetMapToCurrentZone()
+        end
 	local plZX, plZY = Nx.GetPlayerMapPosition ("player")
 	if (Nx.Map.RMapId ~= Nx.Map.UpdateMapID) then
 		plZX = 0
