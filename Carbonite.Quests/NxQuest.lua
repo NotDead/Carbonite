@@ -2790,6 +2790,7 @@ function Nx.Quest:ProcessQuestDB(questTotal)
 		C_Timer.After(5, function() Nx.Quest:ProcessQuestDB(questTotal) end)
 		return
 	end
+	local Map = Nx.Map
 	local maxLoadLevel = Nx.qdb.profile.Quest.maxLoadLevel
 	local enFact = Nx.PlFactionNum == 1 and 1 or 2
 	local qLoadLevel = max(1, UnitLevel ("player") - Nx.qdb.profile.Quest.LevelsToLoad)
@@ -5890,9 +5891,6 @@ end
 
 function Nx.Quest.List:OnWin (typ)
 
-	if typ == "Close" or typ == "Hide" then
-		Nx.Quest:HideUIPanel ()
-	end
 end
 
 -------------------------------------------------------------------------------
