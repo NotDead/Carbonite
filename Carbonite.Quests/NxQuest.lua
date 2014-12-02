@@ -5898,6 +5898,9 @@ end
 
 function Nx.Quest.List:OnWin (typ)
 
+	if typ == "Close" or typ == "Hide" then
+		Nx.Quest:HideUIPanel ()
+	end
 end
 
 -------------------------------------------------------------------------------
