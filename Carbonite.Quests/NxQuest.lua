@@ -5326,6 +5326,7 @@ function Nx.Quest.List:Open()
 	win.Frm:SetMinResize (250, 120)
 
 	win:SetUser (self, self.OnWin)
+	win:RegisterHide ()
 	win:RegisterEvent ("PLAYER_LOGIN", self.OnQuestUpdate)
 	win:RegisterEvent ("UPDATE_FACTION", self.OnQuestUpdate)
 	win:RegisterEvent ("GARRISON_MISSION_COMPLETE_RESPONSE", self.OnQuestUpdate)
@@ -5889,6 +5890,9 @@ end
 
 function Nx.Quest.List:OnWin (typ)
 
+	if typ == "Close" or typ == "Hide" then
+		Nx.Quest:HideUIPanel ()
+	end
 end
 
 -------------------------------------------------------------------------------
