@@ -8205,11 +8205,27 @@ function Nx.Quest:UpdateQuestDetails()
 	QDetail = Nx:ScheduleTimer(self.UpdateQuestDetailsTimer,0,self)
 end
 
+NX_QUEST_TEMPLATE_LOG = { questLog = true, chooseItems = nil, contentWidth = 285,
+	canHaveSealMaterial = false, sealXOffset = 160, sealYOffset = -6,
+	elements = {
+		QuestInfo_ShowTitle, 5, -5,
+		QuestInfo_ShowObjectivesText, 0, -5,
+		QuestInfo_ShowTimer, 0, -10,
+		QuestInfo_ShowObjectives, 0, -10,
+		QuestInfo_ShowSpecialObjectives, 0, -10,
+		QuestInfo_ShowRequiredMoney, 0, 0,
+		QuestInfo_ShowGroupSize, 0, -10,
+		QuestInfo_ShowDescriptionHeader, 0, -10,
+		QuestInfo_ShowDescriptionText, 0, -5,
+		QuestInfo_ShowSeal, 0, 0,
+		QuestInfo_ShowRewards, 0, -10,
+		QuestInfo_ShowSpacer, 0, -10
+	}
+}
+
 function Nx.Quest:UpdateQuestDetailsTimer()
 
---	Nx.prt ("UpdateQuestDetails")
-
-	QuestInfo_Display (QUEST_TEMPLATE_LOG, NXQuestLogDetailScrollChildFrame, nil, nil, "Carb")
+	QuestInfo_Display (NX_QUEST_TEMPLATE_LOG, NXQuestLogDetailScrollChildFrame, nil, nil, "Carb")
 
 	local r, g, b, a = Nx.Util_str2rgba (Nx.qdb.profile.Quest.DetailBC)
 	self.List.DetailsFrm.texture:SetColorTexture (r, g, b, a)
@@ -8249,8 +8265,12 @@ function Nx.Quest:UpdateQuestDetailsTimer()
 
 	MapQuestInfoRewardsFrame["ItemChooseText"]:SetTextColor(r, g, b)
 	MapQuestInfoRewardsFrame["ItemReceiveText"]:SetTextColor(r, g, b)
-	MapQuestInfoRewardsFrame["SpellLearnText"]:SetTextColor(r, g, b)
 	MapQuestInfoRewardsFrame["PlayerTitleText"]:SetTextColor(r, g, b)
+
+	local spellLearnPool = MapQuestInfoRewardsFrame.spellHeaderPool
+	for spellHeader in spellLearnPool:EnumerateActive() do
+		spellHeader:SetTextColor(r, g, b)
+	end
 
 	for n = 1, 10 do
 		if _G["QuestInfoObjective" .. n] then
@@ -9311,7 +9331,7 @@ function Nx.Quest.Watch:UpdateList()
 					end
 				end
 				local tasks = {}
-				if Nx.qdb.profile.QuestWatch.BonusTask then
+				if Nx.qdb.profile.QuestWatch.BonusTask and map.UpdateMapID then
 					local taskInfo = C_TaskQuest.GetQuestsForPlayerByMapID(map.UpdateMapID);
 					if taskInfo then
 						for i=1,#taskInfo do
