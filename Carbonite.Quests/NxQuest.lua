@@ -6203,7 +6203,10 @@ end
 function Nx.Quest.List:OnSendQuestInfoTimer()
 
 	local qi = self.SendQInfoQI
-	local i, cur = qi > 0 and Nx.Quest:FindCurByIndex (qi) or nil, nil
+	local i, cur
+	if (qi > 0) then
+	    i, cur = Nx.Quest:FindCurByIndex (qi)
+	end
 
 	if not i then
 		return
