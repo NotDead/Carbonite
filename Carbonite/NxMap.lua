@@ -1805,7 +1805,8 @@ function Nx.Map:MinimapOwnInit()
 		return
 	end
 	mm:SetMaskTexture ("textures\\MinimapMask")
-	self:MinimapNodeGlowInit()
+	-- Disable as 7.0 broke ability to reliably swap blip textures without artifacting
+	--self:MinimapNodeGlowInit()
 	Nx.Map:MinimapButtonShowUpdate (true)
 
 --	self.Win:RegisterEvent ("MINIMAP_UPDATE_ZOOM", self.OnEvent)
