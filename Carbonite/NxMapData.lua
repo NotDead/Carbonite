@@ -1454,6 +1454,16 @@ Map.MapWorldInfo = {
 		 Overlay = "suramar",
 		 Name = L["Suramar"],
 	},
+	[1057] = {
+		 Scale = 11.1,
+		 X = 370,
+		 Y = -180,
+		 Name = L["The Maelstrom, Shaman Order Hall"],
+		 City = true,
+	},
+	[1076] = {
+		BaseMap = 529,
+	},
 	[1080] = {
 		Scale = 1.8625,
 		X = -960,
@@ -1462,6 +1472,9 @@ Map.MapWorldInfo = {
 		City = true,		
 		Overlay = "thundertotem",
 	},	
+	[1100] = {
+		BaseMap = 799,
+	},
 	[9005] = {		-- Blade's Edge Arena
 		Name = L["Blade's Edge Arena"],
 		1,
