@@ -1455,11 +1455,12 @@ Map.MapWorldInfo = {
 		 Name = L["Suramar"],
 	},
 	[1057] = {
-		 Scale = 11.1,
-		 X = 370,
-		 Y = -180,
-		 Name = L["The Maelstrom, Shaman Order Hall"],
-		 City = true,
+		Scale = 1.6589 / 1.3,
+		ScaleAdjust = 1.3,
+		X = 370,
+		Y = -180,
+		Name = L["The Maelstrom, Shaman Order Hall"],
+		City = true,
 	},
 	[1076] = {
 		BaseMap = 529,
