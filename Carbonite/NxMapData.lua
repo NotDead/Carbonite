@@ -1454,6 +1454,13 @@ Map.MapWorldInfo = {
 		 Overlay = "suramar",
 		 Name = L["Suramar"],
 	},
+	[1057] = {
+		 Scale = 11.1,
+		 X = 370,
+		 Y = -180,
+		 Name = L["The Maelstrom, Shaman Order Hall"],
+		 City = true,
+	},
 	[1076] = {
 		BaseMap = 529,
 	},
