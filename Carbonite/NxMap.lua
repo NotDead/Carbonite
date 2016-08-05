@@ -2211,10 +2211,10 @@ function Nx.Map:MinimapUpdate()
 			zoomType = 0
 		end
 		if (indoorChange and Nx.db.profile.MiniMap.IndoorTogFullSize) or (bugChange and Nx.db.profile.MiniMap.BuggedTogFullSize) then
-print("Indoorchange:", indoorChange," City? ", info.City, "Indoor? ", indoors)
-print("Bugchange:", bugChange," bug? ", bugged)
+			--Nx.prt("Indoorchange:", indoorChange," City? ", info.City, "Indoor? ", indoors)
+			--Nx.prt("Bugchange:", bugChange," bug? ", bugged)
 			lOpts.NXMMFull = false
-			if indoors or bugged then
+			if (indoors and Nx.db.profile.MiniMap.IndoorTogFullSize) or (bugged and Nx.db.profile.MiniMap.BuggedTogFullSize) then
 				lOpts.NXMMFull = true
 			end
 			self.MMMenuIFull:SetChecked (lOpts.NXMMFull)
