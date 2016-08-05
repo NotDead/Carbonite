@@ -4903,28 +4903,12 @@ function Nx.Map:SetInstanceMap (mapId)
 	end
 end
 
-function Nx.Map:GetNumDungeonMapLevels()
-	local maps = { GetNumDungeonMapLevels() }
-	local first = GetNumDungeonMapLevels()
-	if not first then
-		if GetCurrentMapDungeonLevel() == 0 then
-			return 0,0
-		end
-		return 1, 1
-	end
-	local count = 0
-	for _ in pairs(maps) do 
-		count = count + 1
-	end	
-	return count, 1
-end
-
 function Nx.Map:GetInstanceMapTextures(mapId)
 	local areaId = mapId
 	if areaId then
 		SetMapByID(areaId)
 		local mapName = GetMapInfo();
-		local levels, first = Nx.Map:GetNumDungeonMapLevels()
+		local levels, first = GetNumDungeonMapLevels()
 		local useTerrainMap = DungeonUsesTerrainMap()
 		if (areaId == 824) then
 			levels = 7
@@ -4938,7 +4922,19 @@ function Nx.Map:GetInstanceMapTextures(mapId)
 			levels = 1
 			first = 1
 		end
-		Nx.Map.InstanceInfo[mapId] = {}		
+		if (areaId == 1076) then
+			levels = 3
+			first = 1
+		end
+		if (areaId == 1100) then
+			levels = 4
+			first = 1
+		end
+		Nx.Map.InstanceInfo[mapId] = {}
+		if not levels then
+			levels = 0
+			first = 0
+		end
 		if not first then 
 			first = 1
 		end
