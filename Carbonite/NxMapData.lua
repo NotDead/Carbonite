@@ -1460,7 +1460,16 @@ Map.MapWorldInfo = {
 		MMOutside = true,
 		X = 640,
 		Y = 120,
-		Name = L["The Maelstrom, Shaman Order Hall"],
+		Name = L["The Maelstrom"],		-- Shaman order hall
+		City = true,
+	},
+	[1068] = {
+		Scale = 0.9,
+		ScaleAdjust = 0.63,
+		MMOutside = true,
+		X = 170,
+		Y = 0,
+		Name = L["Hall of the Guardian"],	-- Mage order hall
 		City = true,
 	},
 	[1076] = {
