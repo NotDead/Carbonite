@@ -1395,13 +1395,13 @@ Map.MapWorldInfo = {
 		Overlay = "ashranhordefactionhub",
 	},
 	[1014] = {
-		Scale = 1.6589 / 1.3,
-		X = -1000,
-		Y = 100,
+		Scale = 1.75,
+		ScaleAdjust = 0.94,
+		MMOutside = true,
+		X = 0,
+		Y = 0,
 		Overlay = "dalaran70",		
 		City = true,
-		Alpha = .85,
-		ScaleAdjust = 1.3,
 		MapLevel = 1,		
 	},
 	[1015] = {
