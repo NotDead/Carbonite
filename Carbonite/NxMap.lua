@@ -4914,7 +4914,7 @@ function Nx.Map:GetInstanceMapTextures(mapId)
 		if #levels == 0 then
 			first = 0
 		else
-			first = levels[0]
+			first = levels[1]
 		end
 		levels = #levels
 		if (areaId == 824) then
