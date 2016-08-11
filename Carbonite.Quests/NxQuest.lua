@@ -3244,6 +3244,10 @@ function Nx.Quest:SelectBlizz (qi)
 	if qi > 0 then
 
 		SelectQuestLogEntry (qi)
+		local _, _, _, _, _, _, _, qid = GetQuestLogTitle(qi)
+		-- This is needed by "seal" emblem quests
+		-- in blizzard QuestInfo_Display()
+		NxQuestD.questID = qid
 
 --		QuestLog_SetSelection (qi)
 --		QuestLog_Update()
@@ -8205,23 +8209,7 @@ function Nx.Quest:UpdateQuestDetails()
 	QDetail = Nx:ScheduleTimer(self.UpdateQuestDetailsTimer,0,self)
 end
 
-NX_QUEST_TEMPLATE_LOG = { questLog = true, chooseItems = nil, contentWidth = 285,
-	canHaveSealMaterial = false, sealXOffset = 160, sealYOffset = -6,
-	elements = {
-		QuestInfo_ShowTitle, 5, -5,
-		QuestInfo_ShowObjectivesText, 0, -5,
-		QuestInfo_ShowTimer, 0, -10,
-		QuestInfo_ShowObjectives, 0, -10,
-		QuestInfo_ShowSpecialObjectives, 0, -10,
-		QuestInfo_ShowRequiredMoney, 0, 0,
-		QuestInfo_ShowGroupSize, 0, -10,
-		QuestInfo_ShowDescriptionHeader, 0, -10,
-		QuestInfo_ShowDescriptionText, 0, -5,
-		QuestInfo_ShowSeal, 0, 0,
-		QuestInfo_ShowRewards, 0, -10,
-		QuestInfo_ShowSpacer, 0, -10
-	}
-}
+local NX_QUEST_TEMPLATE_LOG = QUEST_TEMPLATE_LOG
 
 function Nx.Quest:UpdateQuestDetailsTimer()
 
