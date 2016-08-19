@@ -71,7 +71,7 @@
 	<ScrollChild>
 		<!-- Inserted to mimic blizzard quest frame structure
 			to allow "seals" on quest displays to work right -->
-		<Frame name="NXQuestDetailsScrollIntermediate">a
+		<Frame name="NXQuestDetailsScrollIntermediate">
 			<Size>
 				<AbsDimension x="298" y="333" />
 			</Size>
