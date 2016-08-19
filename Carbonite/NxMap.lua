@@ -8664,7 +8664,6 @@ function Nx.Map:SetCurrentMap (mapId)
 		if self:IsInstanceMap(mapId) then	-- Instance?
 			local aid = mapId
 			if aid then
-				self.MapId = 0				-- Force change (needed?)
 				if mapId == self:GetRealBaseMapId() then
 					SetMapToCurrentZone()					
 				else
