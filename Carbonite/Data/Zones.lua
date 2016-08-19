@@ -326,9 +326,12 @@ Nx.Zones = {
 	[1056] = L["The Maelstrom"] .. "|100|110|3|5|737|0|0|0", -- Enhance shaman artifact scenario
 	[1057] = L["The Maelstrom "] .. "|100|110|2|5||||", -- shaman order hall - The heart of azeroth
 	[1060] = L["Deepholm"] .. "|100|110|3|5|640|55|22|0",              -- Enhance shaman artifact scenario
+	[1070] = L["Vortex Pinnacle Shaman Artifact"] .. "|100|110|3|5|1057|26.7|41.3|0",
 	[1072] = L["Trueshot Lodge"] .. "|100|110|3|5|1024|50|0|0",
 	[1077] = L["The Dreamgrove"] .. "|100|110|3|5|1018|0|0|0",
 	[1080] = L["Thunder Totem"] .. "|100|110|3|5|1024|50|50|0",	
+	[1091] = L["Battle for Exodar"] .. "|100|110|3|5|1014|50|50|0",
+	[1092] = L["Battle for Exodar"] .. "|100|110|3|5|1014|50|50|0",
 }
 
 Nx.SubNames = {
