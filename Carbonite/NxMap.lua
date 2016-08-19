@@ -1114,7 +1114,7 @@ function Nx.Map:Create (index)
 		mmAddonOverlay.SetZoom = Minimap.SetZoom
 		mmAddonOverlay:Hide()
 		m.MMAddonOverlayFrm = mmAddonOverlay
-		HBDPins:SetMinimapObject(fakemm)
+		HBDPins:SetMinimapObject(mmAddonOverlay)
 	end
 
 	Nx.Map.RMapId = 9000		-- Safe default
