@@ -7590,7 +7590,7 @@ function Nx.Quest:UpdateIcons (map)
 
 	local tracking = self.IconTracking
 
-	if Nx.Tick % 10 == 0 then
+	if map.Tick % 10 == 0 then
 
 --		tracking = {}		-- garbage creator
 		wipe (tracking)
