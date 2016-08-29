@@ -1107,7 +1107,7 @@ function Nx.Map:Create (index)
 	m.Arch:SetBorderScalar( 0.15 )
 
 
-	local HBDPins = LibStub("HereBeDragons-Pins-1.0")
+	local HBDPins = LibStub:GetLibrary("HereBeDragons-Pins-1.0", true)
 	if m.MMOwn and HandyNotes and HBDPins then
 		local mmAddonOverlay = CreateFrame("Frame", "NxMinimapAddonOverlay", m.TextScFrm:GetScrollChild())
 		mmAddonOverlay.GetZoom = Minimap.GetZoom
