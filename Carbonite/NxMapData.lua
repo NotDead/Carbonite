@@ -1475,6 +1475,23 @@ Map.MapWorldInfo = {
 	[1076] = {
 		BaseMap = 529,
 	},
+	[1080] = {
+		Scale = 1.75,
+		ScaleAdjust = 0.94,
+		MMOutside = true,
+		X = -965,
+		Y = -870,
+		Overlay = "ThunderTotem",
+		City = true,
+		MapLevel = 1,		
+	},
+	[1096] = {
+		Scale = 5.75,
+		X = -1220,
+		Y = 510,
+		Overlay = "azsunadungeonexterior",
+		Name = L["Eye of Azshara"],
+	},
 	[1100] = {
 		BaseMap = 799,
 	},
