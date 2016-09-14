@@ -5314,7 +5314,7 @@ function Nx.Quest.List:Open()
 
 	-- Create window
 
-	local win = Nx.Window:Create ("NxQuestList")
+	local win = Nx.Window:Create ("NxQuestList", nil, nil, true)
 	self.Win = win
 
 	win:CreateButtons (true, true)
