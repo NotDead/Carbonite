@@ -264,7 +264,9 @@ L["Quest Giver Higher Levels To Show"] = "Committenti Alto Livello da Mostrare"
 L["Group"] = "Gruppo"
 L["Remove Watch"] = "Rimuovi Vista"
 L["BONUS TASK"] = "OBIETTIVO BONUS"
+L["WORLD QUEST"] = true
 L["Progress: "] = "Progresso: "
+
 L["Link Quest (shift right click)"] = "Link Missione (shift + click mouse destro)"
 L["Show Quest Log (alt right click)"] = "Mostra Lista Missioni (alt + click mouse destro)"
 L["Show On Map (shift left click)"] = "Mostra sulla Mappa (shift + click mouse sinistro)"

@@ -52,6 +52,7 @@ L["Crown Guard Tower, Eastern Plaguelands"] = "Turm der Kronenwache, \195\150stl
 L["Crusaders' Pinnacle, Icecrown"] = "Kreuzfahrerturm, Eiskrone"
 L["Crushblow, Twilight Highlands"] = "Schmetterschlagposten, Schattenhochland"
 L["Dalaran"] = true
+L["Krasus Landing, Dalaran (WotLK)"] = "Krasus Landeplatz, Dalaran (Nordend)"
 L["Darkbreak Cove, Vashj'ir"] = "D\195\164mmerbucht, Vashj'ir"
 L["Darkshire, Duskwood"] = "Dunkelhain, D\195\164mmerwald"
 L["Darnassus, Teldrassil"] = "Darnassus, Teldrassil"
@@ -399,11 +400,57 @@ L["Vol'jin's Pride, Talador"] = "Vol'jins Stolz, Talador"
 --Tanaan
 L["Lion's Watch, Tanaan Jungle"] = "L\195\182wenwacht, Tanaandschungel"
 L["The Iron Front, Tanaan Jungle"] = "Die Eiserne Front, Tanaandschungel"
-L["Vol'mar, Tanaan Jungle"] = "Vol'mar, Tanaandschungel" 
-L["Aktar's Post, Tanaan Jungle"] = "Aktars Posten, Tanaandschungel" 
+L["Vol'mar, Tanaan Jungle"] = "Vol'mar, Tanaandschungel"
+L["Aktar's Post, Tanaan Jungle"] = "Aktars Posten, Tanaandschungel"
 L["Sha'naari Refuge, Tanaan Jungle"] = "Die Scha'naarizuflucht, Tanaandschungel"
 L["Vault of the Earth, Tanaan Jungle"] = "Das Erdgew/195/182lbe, Tanaandschungel"
 L["Malo's Lookout, Tanaan Jungle"] = "Malos Ausblick, Tanaandschungel"
+-- dalaran
+L["Krasus Landing, Dalaran (Legion)"] = "Krasus Landeplatz, Dalaran (Legion)"
+--Azsuna
+L["Shackle's Den, Azsuna"] = "Fessles Kajüte, Azsuna"
+L["Challiane's Terrace, Azsuna"] = "Challianes Terasse, Azsuna"
+L["Azurewing Refuge, Azsuna"] = "Azurschwingenrast, Azsuna"
+L["Felblaze Ingress, Azsuna"] = "Teufelsfeuervorstoß, Azsuna"
+L["Illidari Perch, Azsuna"] = "Der Hochstand der Illidari, Azsuna"
+L["Illidari Stand, Azsuna"] = "Verteidgungsposten der Illidari, Azsuna"
+L["Warden's Redoubt, Azsuna"] = "Feldlager der Wächterinnen, Azsuna"
+L["Watchers' Aerie, Azsuna"] = " Der Horst der Behüter, Azsuna"
+  --Stormheim
+L["Hafr Fjall, Stormheim"] = "Hafr Fjall, Sturmheim"
+L["Shield's Rest, Stormheim"] = "Die Schildruhinsel, Sturmheim"
+L["Stormtorn Foothills, Stormheim"] = "Das Sturmgepeischte Vorgebirge Sturmheim"
+L["Valdisdall, Stormheim"] = "Valdisdall, Sturmheim"
+L["Greywatch, Stormheim"] = "Die Graue Wacht, Strumheim"
+L["Lorna's Watch, Stormheim"] = "Lornas Wacht, Sturmheim"
+L["Skyfire Triage Camp, Stormheim"] = "Das Fedlazerett der Himmelsfeuer, Sturmheim "
+L["Cullen's Post, Stormheim"] = "Cullens Lager, Sturmheim"
+L["Dreadwake's Landing, Stormheim"] = "Das Schreckensflutlager, Sturmheim"
+L["Forsaken Foothold, Stormheim"] = "Die Stellung der Verlassenen, Sturmheim"
+  --Val'sharah
+L["Bradensbrook, Val'sharah"] = "Bradenbach, Val'sharah"
+L["Garden of the Moon, Val'sharah"] = "Der Mondgarten, Val'sharah"
+L["Gloaming Reef, Val'sharah"] = "Dämmerndes Riff, Val'sharah"
+L["Lorlathil, Val'sharah"] = true -- german same as English
+L["Starsong Refuge, Val'sharah"] = "Sternensangzuflucht, Val'sharah"
+  --Broken Shore
+L["Illidari Camp, Broken Shore"] = "Lager der Illidari, Die Verherte Küste"
+  --Highmountain
+L["Shipwreck Cove, Highmountain"] = "Die Schiffbruchgrotte, Hochberg"
+L["Prepfoot, Highmountain"] = "Kauzfußland, Hochberg"
+L["Skyhorn, Highmountain"] = "Das Himmelshorn, Hochberg"
+L["Stonehoof Watch, Highmountain"] = "Die Steinhufwacht, Hochberg"
+L["Ironhorn Enclave, Highmountain"] = "Die Eisenhornenklave, Hochberg"
+L["Obsidian Overlook, Highmountain"] = "Der Obsidianspähposten, Hochberg"
+L["Sylvan Falls, Highmountain"] = "Die Sylvanfälle, Hochberg"
+L["Nesingwary, Highmountain"] = "Nesingwary, Hochberg"
+L["The Witchwood, Highmountain"] = "Der Hexenwald, Hochberg"
+L["Felbane Camp, Highmountain"] = "Teufelsbanns Lager, Hochberg"
+L["Thunder Totem, Highmountain"] = "Donnertotem, Hochberg"
+  --Suramar
+L["Crimson Ticket, Suramar"] = "Das Purpurdickicht, Suramar"
+L["Meredil, Suramar"] = true -- german same as English
+L["Irongrove Retreat, Suramar"] = "Eisenhainzuflucht, "
 -- Translation for Flight_LOC
 L["Alliance Flight"] = "Allianz Flugpunkt"
 L["Horde Flight"] = "Horde Flugpunkt"

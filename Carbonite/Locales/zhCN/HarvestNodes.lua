@@ -81,7 +81,14 @@ L["Tiger Lily"] = "卷丹"
 L["Twilight Jasmine"] = "暮光茉莉"
 L["Whiptail"] = "鞭尾草"
 L["Wild Steelbloom"] = "野钢花"
-L["Withered Herb"] = true
+L["Withered Herb"] = "枯萎的草药"
+-- Legion Herbs
+L["Aethril"] = "安瑟瑞尔花"
+L["Dreamleaf"] = "入梦叶"
+L["Felwort"] = "邪能球茎"
+L["Fjarnskaggl"] = "夏斯卡格草"
+L["Foxflower"] = "狐尾花"
+L["Starlight Rose"] = "星光玫瑰"
 
 -- Mines
 L["Adamantite Deposit"] = "精金矿脉"
@@ -128,3 +135,11 @@ L["Titanium Vein"] = "泰坦神铁矿脉"
 L["Trillium Vein"] = "延极矿脉"
 L["True Iron Deposit"] = "真铁矿脉"
 L["Truesilver Deposit"] = "真银矿石"
+--Legion Mines
+L["Felslate Deposit"] = "邪能页岩矿脉"
+L["Felslate Seam"] = "邪能页岩矿层"
+L["Living Felslate"] = "活性邪能页岩"
+L["Leystone Deposit"] = "魔石矿脉"
+L["Leystone Seam"] = "魔石矿层"
+L["Living Leystone"] = "活性魔石"
+L["Infernal Brimstone"] = "地狱硫磺"

@@ -73,6 +73,8 @@ local defaults = {
 			RepairAuto = false,
 			RepairGuild = false,
 			AddTooltip = true,
+			TooltipIgnore = true,
+			IgnoreList = {["Hearthstone"]="Hearthstone",["Garrison Hearthstone"]="Garrison Hearthstone",["Admiral's Compass"]="Adminral's Compass"},			
 			ShowGold = false,
 		},
 	},
@@ -119,8 +121,74 @@ local function WarehouseOptions()
 								Nx.wdb.profile.Warehouse.ShowGold = not Nx.wdb.profile.Warehouse.ShowGold
 							end,						
 						},
-						WareFont = {
+						tiphidelist = {
 							order = 3,
+							name = L["Use don't display list"],
+							desc = L["If enabled, don't show listed items in tooltips"],
+							type = "toggle",
+							width = "full",
+							descStyle = "inline",
+							get = function()
+								return Nx.wdb.profile.Warehouse.TooltipIgnore
+							end,
+							set = function()
+								Nx.wdb.profile.Warehouse.TooltipIgnore = not Nx.wdb.profile.Warehouse.TooltipIgnore
+							end,									
+						},
+						hidenew = {
+							order = 4,
+							type = "input",
+							name = L["New Item To Ignore (Case Insensative)"],
+							desc = L["Enter the name of the item you want to not track in tooltips. You can drag and drop an item from your inventory aswell."],
+							width = "full",
+							disabled = function()
+								return not Nx.wdb.profile.Warehouse.TooltipIgnore
+							end,
+							get = false,
+							set = function (info, value)
+								local name = GetItemInfo(value)
+								name = name or value
+								StaticPopupDialogs["NX_AddIgnore"] = {
+									text = L["Ignore"] .. " " .. value .. "?",
+									button1 = L["Yes"],
+									button2 = L["No"],											
+									OnAccept = function()
+										Nx.wdb.profile.Warehouse.IgnoreList[name] = name
+										LibStub("AceConfigRegistry-3.0"):NotifyChange("Carbonite")
+									end,
+									hideOnEscape = true,
+									whileDead = true,
+								}
+								local dlg = StaticPopup_Show("NX_AddIgnore")
+							end,
+						},
+						hidedelete = {
+							order = 5,
+							type = "select",									
+							style = "radio",
+							name = L["Delete Item"],
+							disabled = function()
+								return not Nx.wdb.profile.Warehouse.TooltipIgnore
+							end,
+							get = false,
+							values = Nx.wdb.profile.Warehouse.IgnoreList,
+							set = function(info, value)
+								StaticPopupDialogs["NX_DelIgnore"] = {
+									text = L["Delete"] .. " " .. value .. "?",
+									button1 = L["Yes"],
+									button2 = L["No"],
+									OnAccept = function()
+										Nx.wdb.profile.Warehouse.IgnoreList[value] = nil
+										LibStub("AceConfigRegistry-3.0"):NotifyChange("Carbonite")
+									end,
+									hideOnEscape = true,
+									whileDead = true,
+								}
+								local dlg = StaticPopup_Show("NX_DelIgnore")
+							end,
+						},						
+						WareFont = {
+							order = 6,
 							type	= "select",
 							name	= L["Warehouse Font"],
 							desc	= L["Sets the font to be used for warehouse windows"],
@@ -143,7 +211,7 @@ local function WarehouseOptions()
 							end,
 						},
 						WareFontSize = {
-							order = 4,
+							order = 7,
 							type = "range",
 							name = L["Warehouse Font Size"],
 							desc = L["Sets the size of the warehouse font"],
@@ -160,7 +228,7 @@ local function WarehouseOptions()
 							end,
 						},
 						WareFontSpacing = {
-							order = 5,
+							order = 8,
 							type = "range",
 							name = L["Warehouse Font Spacing"],
 							desc = L["Sets the spacing of the warehouse font"],
@@ -951,7 +1019,11 @@ function Nx.Warehouse:ConvertData()
 		if Nx.db.global.Characters[ch].WareRBank then
 			Nx.wdb.global.Characters[ch].WareRBank = Nx.db.global.Characters[ch].WareRBank
 			Nx.db.global.Characters[ch].WareRBank = nil					
-		end						
+		end
+		if Nx.db.global.Characters[ch].OrderHall then
+			Nx.wdb.global.Characters[ch].OrderHall = Nx.db.global.Characters[ch].OrderHall
+			Nx.db.global.Characters[ch].OrderHall = nil
+		end
 		if Nx.db.global.Characters[ch].Class then
 			Nx.wdb.global.Characters[ch].Class = Nx.db.global.Characters[ch].Class			
 		end								
@@ -1081,7 +1153,7 @@ function Nx.Warehouse:Init()
 		["Warrior"] = "INV_Sword_27",
 		["Death Knight"] = "Spell_Deathknight_ClassIcon",
 		["Monk"] = "class_monk",
-		["Demon Hunter"] = "class_demonhunter",		
+		["Demonhunter"] = "INV_Glaive_1h_npc_d_01",		
 	}
 
 	self.InvNames = {
@@ -1768,6 +1840,10 @@ function Nx.Warehouse:Update()
 				if ch["Garrison"] then
 					list:ItemAdd(cnum)
 					list:ItemSet(2, format (L[" Garrison Resources: %s%s"], hicol, ch["Garrison"]))
+				end
+				if ch["OrderHall"] then
+					list:ItemAdd(cnum)
+					list:ItemSet(2, format (L[" Order Resources: %s%s"], hicol, ch["OrderHall"]))
 				end
 				list:ItemAdd(cnum)
 				list:ItemSet (2, "|cff00ffff  ------")
@@ -2512,23 +2588,20 @@ function Nx.Warehouse:ReftipProcess()
 	if not Nx.wdb.profile.Warehouse.AddTooltip then
 		return
 	end
-
 	local tip = ItemRefTooltip
 	local name, link = tip:GetItem()
-	if name then
---		Nx.prt ("TTItem %s", name or "nil")
-
+	if name then		
+		if Nx.wdb.profile.Warehouse.TooltipIgnore and Nx.wdb.profile.Warehouse.IgnoreList[name] then
+			return
+		end
 		local titleStr = format (L["|cffffffffW%sarehouse:"], Nx.TXTBLUE)
-
 		local textName = "ItemRefTooltipTextLeft"
-
 		for n = 2, tip:NumLines() do
 			local s1 = strfind (_G[textName .. n]:GetText() or "", titleStr)
 			if s1 then
 				return
 			end
 		end
-
 		local str, count, total = Nx.Warehouse:FindCharsWithItem (link,"tooltip")
 		if total > 0 then
 			str = gsub (str, "\n", "\n ")
@@ -2551,20 +2624,17 @@ function Nx.Warehouse:ReftipProcess()
 end
 
 function Nx.Warehouse:TooltipProcess()
-
 	if not Nx.wdb.profile.Warehouse.AddTooltip then
 		return
 	end
-
 	local tip = GameTooltip
 	local name, link = tip:GetItem()
 	if name then
---		Nx.prt ("TTItem %s", name or "nil")
-
+		if Nx.wdb.profile.Warehouse.TooltipIgnore and Nx.wdb.profile.Warehouse.IgnoreList[name] then
+			return
+		end
 		local titleStr = format (L["|cffffffffW%sarehouse:"], Nx.TXTBLUE)
-
 		local textName = "GameTooltipTextLeft"
-
 		for n = 2, tip:NumLines() do
 			local s1 = strfind (_G[textName .. n]:GetText() or "", titleStr)
 			if s1 then
@@ -3384,52 +3454,39 @@ function Nx.Warehouse:RecordProfession()
 
 --	Nx.prt ("Rec #skills %s", GetNumTradeSkills())
 
-	local linked = IsTradeSkillLinked()
+	local linked = C_TradeSkillUI.IsTradeSkillLinked()
 	if linked then
 --		Nx.prt (" Linked, skip")
 		return
 	end
 
-	local cnt = GetNumTradeSkills()
-
-	if cnt == 0 then		-- Not a proper update?
+	local recipies = C_TradeSkillUI.GetAllRecipeIDs()
+	
+	if recipies and #recipies == 0 then	
 		return
 	end
-
+	
 	local ch = Nx.Warehouse.CurCharacter
 
-	local title = GetTradeSkillLine()
---	Nx.prt ("Trade %s", title)
-
+	local _,title = C_TradeSkillUI.GetTradeSkillLine()	
+	
 	local profT = ch["Profs"][title]
 	if not profT then
 		return
 	end
 
-	local link = GetTradeSkillListLink()
+	local link = C_TradeSkillUI.GetTradeSkillListLink()
 	if link then
 		profT["Link"] = link
 	end
-
-	for n = 1, cnt do
-
-		local name, typ, available, isExpanded = GetTradeSkillInfo (n)
-		if typ ~= "header" then
-
-			local link = GetTradeSkillRecipeLink (n)	-- Alchemy research causes nil?
-			local rId = link and strmatch (link, L["enchant:(%d+)"])
-
-			local link = GetTradeSkillItemLink (n)
-			local itemId = link and strmatch (link, L["item:(%d+)"]) or 0
-
-			if rId then
-				profT[tonumber (rId)] = tonumber (itemId)
---			else
---				Nx.prt ("  %s", gsub (link, "|", "||"))
-			end
-
---			Nx.prt ("#%s %s %s", n, name, link)
-		end
+	
+	local recipiesInfo = {}
+	for n = 1, #recipies do
+		C_TradeSkillUI.GetRecipeInfo(recipies[n], recipiesInfo)
+		local rId = recipiesInfo.recipeID
+		local link = C_TradeSkillUI.GetRecipeItemLink (rId)
+		local itemId = link and strmatch (link, L["item:(%d+)"]) or 0					
+		profT[tonumber (rId)] = tonumber (itemId)		
 	end
 end
 
@@ -3492,6 +3549,8 @@ function Nx.Warehouse:RecordCharacter()
 	local _, honor = GetCurrencyInfo (392)	
 	local _, apexis = GetCurrencyInfo (823)
 	local _, garrison = GetCurrencyInfo (824)
+	local _, orderhall = GetCurrencyInfo (1220)
+	ch["OrderHall"] = orderhall
 	ch["Conquest"] = conquest		--V4 gone GetArenaCurrency()
 	ch["Honor"] = honor			--V4 gone GetHonorCurrency()
 	ch["Apexis"] = apexis

@@ -20,8 +20,8 @@ L["Show Quest ID"] = "Quest ID anzeigen"
 L["When enabled, shows the quest ID beside the quest"] = "Wird die ID der Quests neben der Quest angezeigt."	-- still in NxQuest.lua, asume removed by mistake
 L["Quest Details Background Color"] = "Questbeschreibungshintergrundfarbe"
 L["Quest Details Text Color"] = "Questbeschreibungstextfarbe"
-L["Use scroll image in quest log"] = true
-L["When enabled, uses paper looking background for quest details"] = true
+L["Use scroll image in quest log"] = "Verwendung des Scrollbildes im Quest-Log"
+L["When enabled, uses paper looking background for quest details"] = "Wenn aktiv, wird in den Questbeschreibungen der Papierhintergrund angezeigt"
 L["Quest Details Scale"] = "Questbeschreibungsskalierung"
 L["Sets the size of the quest details"] = "die Gr\195\182\195\159e der Questbeschreibung einstellen"
 L["Show Quest Tooltips"] = "Questkurzinfos anzeigen"
@@ -265,6 +265,7 @@ L["Quest Giver Higher Levels To Show"] = "Hochstufigere Questgeber anzeigen"
 L["Group"] = "Gruppe"
 L["Remove Watch"] = "Verfolgung beenden"
 L["BONUS TASK"] = "BONUSZIELE"
+L["WORLD QUEST"] = "WELTQUESTS"
 L["Progress: "] = "Fortschritt: "
 
 L["Link Quest (shift right click)"] = "Quest verlinken (Shift-Rechtsklick)"
@@ -298,7 +299,7 @@ L["yds"] = "m"
 
 L["Reset old quest options %f"] = "alte Questeinstellungen zur\195\188cksetzen %f"
 L["Set %d chain quests as done"] = "Setze %d vorherige Questfolgen als abgeschlossen"
-L["QuestQueryTimer wait"] = true
+L["QuestQueryTimer wait"] = "QuestQueryTimer warten"
 L["Set %d previous quests as done"] = "Setze %d vorherige Quests als abgeschlossen"
 L["Capture %s %s %s %.2f,%.2f"] = "Erobern %s %s %s %.2f,%.2f"
 L["Capture #%s %s %.2f,%.2f"] = "Erobern #%s %s %.2f,%.2f"

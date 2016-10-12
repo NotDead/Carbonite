@@ -543,7 +543,9 @@ function Nx.Map:Create (index)
 	m.IconNIFrms.Next = 1
 	m.IconStaticFrms = {}
 	m.IconStaticFrms.Next = 1
-
+	m.IconWQFrms = {}
+	m.IconWQFrms.Next = 1
+	
 	m.TextFStrs = {}
 	m.TextFStrs.Next = 1
 
@@ -559,7 +561,7 @@ function Nx.Map:Create (index)
 
 	local win = Nx.Window:Create (wname, nil, nil, nil, i)
 	m.Win = win
-
+	
 	win:SetBGAlpha (0, 1)
 
 	win:CreateButtons (true)
@@ -585,14 +587,16 @@ function Nx.Map:Create (index)
 	win.Frm.NxMap = m
 
 	m.StartupShown = win:IsShown()
-	win.Frm:Show()
-
+	win.Frm:Show()	
+	
 	-- Create main frame
 
 	local f = CreateFrame ("Frame", nil, UIParent)
 	m.Frm = f
 	f.NxMap = m
-
+	
+	WorldMap_HijackTooltip(m.Frm)
+	
 	win:Attach (f, 0, 1, 0, 1)
 
 --	win:RegisterEvent ("PLAYER_LOGIN", self.OnEvent)
@@ -2029,7 +2033,7 @@ function Nx.Map:MinimapNodeGlowInit (reset)
 	Nx:CancelTimer (MapNodeGlow)
 
 	if reset then
-		mm:SetBlipTexture ("Interface\\Minimap\\objecticons")
+		mm:SetBlipTexture ("Interface\\Minimap\\ObjectIconsAtlas")
 	end
 
 	local delay = Nx.db.profile.MiniMap.NodeGD
@@ -3026,13 +3030,47 @@ function ToggleFrame (frame)
 end
 
 -------
+-- BOUNTY MAP
+-------
+
+function Nx.Map:HijackBlizzBountyMap()
+	local map = self:GetMap (1)
+
+	WorldMap_HijackTooltip(map.Frm)
+	local bountyBoard = WorldMapFrame.UIElementsFrame.BountyBoard
+	bountyBoard:SetParent(map.Frm)
+	bountyBoard:SetFrameLevel(140)
+	bountyBoard:SetMapAreaID(1007)
+	local bountyBoardLocation = bountyBoard:GetDisplayLocation()
+	if bountyBoardLocation then
+		WorldMapFrame_SetOverlayLocation(bountyBoard, bountyBoardLocation);
+	end
+	bountyBoard:Show()
+end
+
+function Nx.Map:RestoreBlizzBountyMap(tooltip)
+	if tooltip ~= false then WorldMap_RestoreTooltip() end
+	local bountyBoard = WorldMapFrame.UIElementsFrame.BountyBoard
+	bountyBoard:SetParent(WorldMapFrame.UIElementsFrame)
+	bountyBoard:SetFrameLevel(10)
+	bountyBoard:SetMapAreaID(1007)
+	local bountyBoardLocation = bountyBoard:GetDisplayLocation()
+	if bountyBoardLocation then
+		WorldMapFrame_SetOverlayLocation(bountyBoard, bountyBoardLocation);
+	end
+	bountyBoard:Show()
+end
+
+-------
 -- Blizz map toggle
 
 function Nx.Map:BlizzToggleWorldMap()
-
+	
 	if WorldMapFrame:IsShown() then
 		HideUIPanel (WorldMapFrame)
 	else
+		Nx.Map:RestoreBlizzBountyMap()
+	
 		local map = self:GetMap (1)
 		map:DetachWorldMap()
 		ShowUIPanel (WorldMapFrame)
@@ -3085,10 +3123,12 @@ function Nx.Map:ToggleSize (szmode)
 	if not self.Maps then	-- Healbot called ToggleFrame on load that caused us to fail in GetMap
 		return
 	end
+	
+	Nx.Map:RestoreBlizzBountyMap(false)
 
 	local map = self:GetMap (1)
 	local win = map.Win
-
+	
 	if not win:IsShown() then
 		win:Show()
 		if szmode == 0 then
@@ -3112,7 +3152,7 @@ function Nx.Map:ToggleSize (szmode)
 
 			map:MaxSize()
 		end
-
+		Nx.Map:HijackBlizzBountyMap()
 	elseif szmode then
 		win:Show (false)
 
@@ -3122,7 +3162,8 @@ function Nx.Map:ToggleSize (szmode)
 		WorldMapPlayerLower:SetAlpha(0)
 		WorldMapPlayerUpper:SetAlpha(0)
 		map:MaxSize()
-
+		
+		Nx.Map:HijackBlizzBountyMap()
 	else
 		MapBarFrame:SetParent("WorldMapFrame")
 		WorldMapPlayerLower:SetAlpha(1)
@@ -4078,7 +4119,7 @@ function Nx.Map:Update (elapsed)
 
 	-- Taxi update
 
-
+	Nx.Map.DungeonLevel = GetCurrentMapDungeonLevel()
 	local invasions = {181, 11, 161, 27, 24, 39}
 	local invmap = Nx.Map:GetMap(1)
 	for key, value in ipairs(invasions) do
@@ -4158,8 +4199,7 @@ function Nx.Map:Update (elapsed)
 		self.PlyrRZX = plZX
 		self.PlyrRZY = plZY
 
-		local x, y = self:GetWorldPos (Nx.Map.UpdateMapID, 0, 0)
-
+		local x, y = self:GetWorldPos (Nx.Map.UpdateMapID, 0, 0)		
 		local lvl = max (GetCurrentMapDungeonLevel(), 1)		-- 0 if no level		
 		if GetCurrentMapAreaID() == 937 then
 			if GetCurrentMapDungeonLevel() == 0 then
@@ -4236,7 +4276,6 @@ function Nx.Map:Update (elapsed)
 
 	local plX = self.PlyrX
 	local plY = self.PlyrY
-
 	local x = plX - self.MoveLastX
 	local y = plY - self.MoveLastY
 	local ang = self.PlyrDir - self.PlyrLastDir
@@ -4476,19 +4515,7 @@ function Nx.Map:Update (elapsed)
 			end
 		end
 	end
-	if Nx.Map.UpdateMapID ~= 9000 then
-		local taskInfo = C_TaskQuest.GetQuestsForPlayerByMapID(Nx.Map.UpdateMapID);
-			if taskInfo then
-				for i=1,#taskInfo do
-				local x,y = taskInfo[i].x * 100, taskInfo[i].y * 100
-				local f = self:GetIcon (3)
-				f.NxTip = "Bonus Task"
-				f.texture:SetTexture ("Interface\\Minimap\\ObjectIcons")
-				self:ClipFrameZ (f, x, y, 16, 16, 0)
-				f.texture:SetTexCoord (0.125, 0.25, 0.75, 0.875)
-			end
-		end
-	end
+	
 	-- POI's (Points of interest)
 
 	local oldLev = self.Level
@@ -6383,9 +6410,7 @@ function Nx.Map:UpdateOverlay (mapId, bright, noUnexplored)
 
 				if self:ClipFrameTL (f, wx, wy, txFileW * zscale, txFileH * zscale) then
 
---					if IsShiftKeyDown() then
---						f.texture:SetColorTexture (1, 0, 0)
---					end
+					f.texture:SetColorTexture (1, 0, 0, 0) -- fix for background green overlays
 --[[
 					if IsAltKeyDown() then		-- DEBUG!
 						alpha = .2
@@ -7137,7 +7162,7 @@ function Nx.Map:ClipZoneFrm (cont, zone, frm, alpha)
 			vy1 = vy1 / sc
 			frm:SetPoint ("TOPLEFT", vx1, -vy1 - self.TitleH)
 			frm:SetScale (sc)
-			frm:SetFrameLevel (level)
+			if level then frm:SetFrameLevel (level) end
 
 			frm:Show()
 
@@ -7236,7 +7261,7 @@ function Nx.Map:AddIconPt (iconType, x, y, level, color, texture, tx1, ty1, tx2,
 
 	icon.X = x
 	icon.Y = y
-	icon.Level = level
+	icon.Level = level	
 	icon.Color = color
 	icon.Tex = texture
 	if tx1 and ty1 and tx2 and ty2 then
@@ -7348,9 +7373,6 @@ function Nx.Map:UpdateIcons (drawNonGuide)
 			end
 		end
 	end
-	if GetCurrentMapAreaID() == 321 and Nx.Map.DungeonLevel == 1 then
-		Nx.Map.DungeonLevel = 0
-	end
 	for k, v in pairs (d) do
 
 --		Nx.prt ("UpdateIcons %s %s", k, v.DrawMode)
@@ -7362,8 +7384,8 @@ function Nx.Map:UpdateIcons (drawNonGuide)
 				local scale = self.IconScale
 				local w = v.W * scale
 				local h = v.H * scale				
-				for n = 1, v.Num do
-					if (not v[n].Level and Nx.Map.DungeonLevel == 0) or (v[n].Level and v[n].Level == Nx.Map.DungeonLevel) then
+				for n = 1, v.Num do					
+					if (not v[n].Level and Nx.Map.DungeonLevel == 0) or (v[n].Level and v[n].Level == Nx.Map.DungeonLevel) then						
 						local icon = v[n]
 						local f = self:GetIconStatic (v.Lvl)
 
@@ -7437,8 +7459,8 @@ function Nx.Map:UpdateIcons (drawNonGuide)
 						end
 					end
 				else
-					for n = 1, v.Num do
-						if (not v[n].Level and Nx.Map.DungeonLevel == 0) or (v[n].Level and v[n].Level == Nx.Map.DungeonLevel) then
+					for n = 1, v.Num do							
+						if (not v[n].Level and Nx.Map.DungeonLevel == 0) or (v[n].Level and v[n].Level == Nx.Map.DungeonLevel) then							
 							local icon = v[n]
 							local f = self:GetIconStatic(v.Lvl)
 							local actuallyIcon = false
@@ -7526,6 +7548,10 @@ function Nx.Map:ResetIcons()
 	local data = self.TextFStrs
 	data.Used = data.Next - 1		-- Save last used
 	data.Next = 1
+	
+	local data = self.IconWQFrms
+	data.Used = data.Next - 1		-- Save last used
+	data.Next = 1
 end
 
 ------
@@ -7552,6 +7578,12 @@ function Nx.Map:HideExtraIcons()
 	end
 
 	local data = self.TextFStrs
+
+	for n = data.Next, data.Used do		-- Hide up to last used amount
+		data[n]:Hide()
+	end
+	
+	local data = self.IconWQFrms
 
 	for n = data.Next, data.Used do		-- Hide up to last used amount
 		data[n]:Hide()
@@ -7601,6 +7633,112 @@ function Nx.Map:GetIcon (levelAdd)
 	f.NXData = nil
 	f.NXData2 = nil
 
+	frms.Next = pos + 1
+
+	return f
+end
+
+------
+-- Get next available map icon for WorldQuest or create one
+-- ret: icon frame
+
+function Nx.Map:GetIconWQ (levelAdd)
+	
+	local frms = self.IconWQFrms
+	local pos = frms.Next
+
+	if pos > 1500 then
+		pos = 1500	-- Too many used. Reuse
+	end
+
+	local f = frms[pos]
+	if not f then
+
+		f = CreateFrame ("Button", "NxIconWQ"..pos, self.Frm)
+		frms[pos] = f
+		f.NxMap = self
+
+		f:EnableMouse (true)
+
+		local t = f:CreateTexture()
+		f.texture = t
+		t:SetAllPoints (f)
+
+		f:SetFlattensRenderLayers(true);
+		
+		--[[f:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+		f:SetScript("OnEnter", TaskPOI_OnEnter);
+		f:SetScript("OnLeave", TaskPOI_OnLeave);
+		f:SetScript("OnClick", TaskPOI_OnClick);]]--
+
+		f.Texture = f:CreateTexture(f:GetName().."Texture", "BACKGROUND");
+
+		f.Glow = f:CreateTexture(f:GetName().."Glow", "BACKGROUND", -2);
+		f.Glow:SetSize(50, 50);
+		f.Glow:SetPoint("CENTER");
+		f.Glow:SetTexture("Interface/WorldMap/UI-QuestPoi-IconGlow.tga");
+		f.Glow:SetBlendMode("ADD");
+
+		f.SelectedGlow = f:CreateTexture(f:GetName().."SelectedGlow", "OVERLAY", 2);
+		f.SelectedGlow:SetBlendMode("ADD");
+
+		f.CriteriaMatchGlow = f:CreateTexture(f:GetName().."CriteriaMatchGlow", "BACKGROUND", -1);
+		f.CriteriaMatchGlow:SetAlpha(.6);
+		f.CriteriaMatchGlow:SetBlendMode("ADD");
+
+		f.SpellTargetGlow = f:CreateTexture(f:GetName().."SpellTargetGlow", "OVERLAY", 1);
+		f.SpellTargetGlow:SetAtlas("worldquest-questmarker-abilityhighlight", true);
+		f.SpellTargetGlow:SetAlpha(.6);
+		f.SpellTargetGlow:SetBlendMode("ADD");
+		f.SpellTargetGlow:SetPoint("CENTER", 0, 0);
+
+		f.Underlay = f:CreateTexture(f:GetName().."Underlay", "BACKGROUND");
+		f.Underlay:SetWidth(34);
+		f.Underlay:SetHeight(34);
+		f.Underlay:SetPoint("CENTER", 0, -1);
+
+		f.TimeLowFrame = CreateFrame("Frame", nil, f);
+		f.TimeLowFrame:SetSize(22, 22);
+		f.TimeLowFrame:SetPoint("CENTER", -10, -10);
+		f.TimeLowFrame.Texture = f.TimeLowFrame:CreateTexture(nil, "OVERLAY");
+		f.TimeLowFrame.Texture:SetAllPoints(f.TimeLowFrame);
+		f.TimeLowFrame.Texture:SetAtlas("worldquest-icon-clock");
+		
+		--f:SetNormalTexture(nil)
+		--f:SetPushedTexture(nil)
+		--f:SetHighlightTexture(nil)
+	end
+	
+	f:SetWidth(32);
+	f:SetHeight(32);
+	f.Texture:SetWidth(28);
+	f.Texture:SetHeight(28);
+	f.Texture:SetPoint("CENTER", 0, 0);
+	f.Texture:SetTexture("Interface\\Minimap\\ObjectIconsAtlas");
+	if f.HighlightTexture then
+		f.HighlightTexture:SetTexture("Interface\\Minimap\\ObjectIconsAtlas");
+	end
+	
+	f:SetScript ("OnMouseDown", self.IconOnMouseDown)
+	f:SetScript ("OnMouseUp", self.IconOnMouseUp)
+	f:SetScript ("OnEnter", function (self) 
+		TaskPOI_OnEnter(self) 
+		WorldMapTooltip:SetFrameStrata("TOOLTIP");
+		--WorldMapTooltip:SetClampedToScreen(false)
+		WorldMapTooltip.ItemTooltip.Tooltip:SetClampedToScreen(false)
+	end)
+	f:SetScript ("OnLeave", TaskPOI_OnLeave)
+	f:SetScript ("OnHide", self.IconOnLeave)
+
+	f:SetFrameLevel (self.Level + (levelAdd or 0))
+	
+	--f.texture:SetVertexColor (1, 1, 1, 1)
+	
+	f.NxTip = nil
+	f.NXType = nil			-- 1000 plyr, 2000 BG, 3000 POI, 8000 debug, 9000+ quest
+	f.NXData = nil
+	f.NXData2 = nil
+	
 	frms.Next = pos + 1
 
 	return f
@@ -8148,7 +8286,7 @@ function Nx.Map:InitTables()
 		 [5] = {640,605,544,737,823},
 		 [6] = {858,929,928,857,809,905,903,806,873,808,951,810,811,807},
 		 [7] = {978,941,976,949,971,950,947,948,1009,946,945,970,1011},
-		 [8] = {1014,1015,1017,1018,1021,1024, 1028, 1033},
+		 [8] = {1014,1015,1017,1018,1021,1024, 1028, 1033, 1080},
 		 [90] = {401,461,482,540,860,512,856,736,626,443,935,1010},
 		 [100] = {},
 	}
@@ -8920,18 +9058,15 @@ end
 -- (id)
 
 function Nx.Map:GetWorldZoneScale (mapId)
-
---	self.GetWorldZoneScaleCnt = (self.GetWorldZoneScaleCnt or 0) + 1
-
---	if not self.MapWorldInfo[mapId] then
---		Nx.prt ("GetWorldZoneScale %s %s %s", mapId)
---	end
 	local winfo = self.MapWorldInfo[mapId]
 	if winfo and winfo.BaseMap then
 		winfo = self.MapWorldInfo[winfo.BaseMap]
 	end
-	return (not winfo and 10.02) or winfo.Scale
---	return self.MapWorldInfo[mapId][1]
+	if winfo and winfo.Scale then
+		return winfo.Scale
+	else
+		return 10.02
+	end
 end
 
 --------
@@ -9241,6 +9376,9 @@ function Nx.Map:ParseTargetStr (str)
 	local desc
 
 	for s in gmatch (str, "%S+") do
+		if not zx and strsub(s,#s,#s) == "," then
+			s = strsub(s,0,#s - 1)			
+		end
 		local i = tonumber (s)
 		if i then
 			if zx then

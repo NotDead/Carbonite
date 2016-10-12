@@ -139,7 +139,7 @@ local FLIGHT_DATA = {
 	["2,241,44.31,45.72"]=L["Nighthaven, Moonglade"],
 	["2,261,52.89,34.68"]=L["Cenarion Hold, Silithus"],
 	["2,281,58.8,48.2"]=L["Everlook, Winterspring"],
-	["2,321,49.5,59.2"]=L["Orgrimmar, Durotar"],
+	["2,321,49.5,59.2,1"]=L["Orgrimmar, Durotar"],
 	["2,362,46.65,49.90"]=L["Thunder Bluff, Mulgore"],
 	["2,4,53.0,43.5"]=L["Razor Hill, Durotar"],
 	["2,4,55.3,73.3"]=L["Sen'jin Village, Durotar"],
@@ -305,7 +305,7 @@ local FLIGHT_DATA = {
 	["0,496,41.5,64.0"]=L["The Argent Stand, Zul'Drak"],
 	["0,496,60.0,56.7"]=L["Zim'Torga, Zul'Drak"],
 	["0,496,70.45,23.16"]=L["Gundrak, Zul'Drak"],
-	["0,504,72.70,45.68"]=L["Dalaran"],
+	["0,504,72.70,45.68,1"]=L["Krasus Landing, Dalaran (WotLK)"],
 	["0,806,43.1,68.4"]=L["Serpent's Overlook, Jade Forest"],
 	["0,806,43.5,24.6"]=L["Tian Monastery, Jade Forest"],
 	["0,806,47.0,46.0"]=L["Dawn's Blossom, Jade Forest"],
@@ -415,21 +415,69 @@ local FLIGHT_DATA = {
 	["0,945,26.1,38.9"]=L["Aktar's Post, Tanaan Jungle"],
 	["0,945,29.6,63.1"]=L["Sha'naari Refuge, Tanaan Jungle"],
 	["0,945,47.0,70.2"]=L["Vault of the Earth, Tanaan Jungle"],
-	["0,945,43.4,42.2"]=L["Malo's Lookout, Tanaan Jungle"],	
+	["0,945,43.4,42.2"]=L["Malo's Lookout, Tanaan Jungle"],
+
+	--Azsuna
+    ["0,1015,56.1,58.9"]=L["Shackle's Den, Azsuna"],
+    ["0,1015,40.8,9.0"]=L["Challiane's Terrace, Azsuna"],
+    ["0,1015,48.4,28.0"]=L["Azurewing Refuge, Azsuna"],
+    ["0,1015,63.8,28.4"]=L["Felblaze Ingress, Azsuna"],
+    ["0,1015,31.8,46.2"]=L["Illidari Perch, Azsuna"],
+    ["0,1015,44.6,43.8"]=L["Illidari Stand, Azsuna"],
+    ["0,1015,48.2,73.0"]=L["Warden's Redoubt, Azsuna"],
+    ["0,1015,51.8,82.0"]=L["Watchers' Aerie, Azsuna"],
+    --Stormheim
+    ["0,1017,55.6,87.4"]=L["Hafr Fjall, Stormheim"],
+    ["0,1017,89.8,10.6"]=L["Shield's Rest, Stormheim"],
+    ["0,1017,52.0,34.6"]=L["Stormtorn Foothills, Stormheim"],
+    ["0,1017,60.6,50.8"]=L["Valdisdall, Stormheim"],
+    ["1,1017,72.0,59.8"]=L["Greywatch, Stormheim"],
+    ["1,1017,37.4,63.8"]=L["Lorna's Watch, Stormheim"],
+    ["1,1017,33.6,50.6"]=L["Skyfire Triage Camp, Stormheim"],
+    ["2,1017,44.8,59.0"]=L["Cullen's Post, Stormheim"],
+    ["2,1017,54.4,73.0"]=L["Dreadwake's Landing, Stormheim"],
+    ["2,1017,36.4,30.6"]=L["Forsaken Foothold, Stormheim"],
+    --Val'sharah
+    ["0,1018,42.2,58.4"]=L["Bradensbrook, Val'sharah"],
+    ["0,1018,56.6,57.8"]=L["Garden of the Moon, Val'sharah"],
+    ["0,1018,25.8,66.4"]=L["Gloaming Reef, Val'sharah"],
+    ["0,1018,55.0,72.4"]=L["Lorlathil, Val'sharah"],
+    ["0,1018,69.0,50.8"]=L["Starsong Refuge, Val'sharah"],
+    --Broken Shore
+    ["0,1021,49.6,21.0"]=L["Illidari Camp, Broken Shore"],
+    --Highmountain
+    ["0,1024,41.8,10.4"]=L["Shipwreck Cove, Highmountain"],
+    ["0,1024,58.0,28.6"]=L["Prepfoot, Highmountain"],
+    ["0,1024,52.6,45.2"]=L["Skyhorn, Highmountain"],
+    ["0,1024,59.2,65.0"]=L["Stonehoof Watch, Highmountain"],
+    ["0,1024,56.8,83.8"]=L["Ironhorn Enclave, Highmountain"],
+    ["0,1024,47.2,84.6"]=L["Obsidian Overlook, Highmountain"],
+    ["0,1024,35.8,65.8"]=L["Sylvan Falls, Highmountain"],
+    ["0,1024,40.2,52.6"]=L["Nesingwary, Highmountain"],
+    ["0,1024,38.2,39.2"]=L["The Witchwood, Highmountain"],
+    ["0,1024,30.0,39.4"]=L["Felbane Camp, Highmountain"],
+    ["0,1080,45.0,38.8"]=L["Thunder Totem, Highmountain"],
+    --Suramar
+    ["0,1033,64.2,42.0"]=L["Crimson Ticket, Suramar"],
+    ["0,1033,34.2,49.4"]=L["Meredil, Suramar"],
+    ["0,1033,25.4,31.8"]=L["Irongrove Retreat, Suramar"],
+	["0,1014,69.8,51.0,10"]=L["Krasus Landing, Dalaran (Legion)"],
+
 }
 local NX_FLIGHT_LOC = { ["1"] = L["Alliance Flight"], ["2"] = L["Horde Flight"], ["0"] = L["Neutral Flight"], }
 Nx.NPCData={}
 for k, v in pairs(FLIGHT_DATA) do
-	local side, zon, x, y = Nx.Split(",", k)
+	local side, zon, x, y, level = Nx.Split(",", k)
+	if not level then level = 0 end
 	local name = v
 	name = NX_FLIGHT_LOC[side].."|"..name
 	x,y,zon=tonumber(x),tonumber(y),tonumber(zon)
-	table.insert(Nx.NPCData, format("%s|%s|%s|%s|%s",side,name,zon,x,y))
+	table.insert(Nx.NPCData, format("%s|%s|%s|%s|%s|%s",side,name,zon,x,y,level))
 	local i = #Nx.NPCData
 	if not Nx.GuideData[L["Flight Master"]][zon] then
-		Nx.GuideData[L["Flight Master"]][zon] = format("%s,%s,%s,%s",side,x,y,i)
+		Nx.GuideData[L["Flight Master"]][zon] = format("%s,%s,%s,%s,%s",side,x,y,level,i)
 	else
-		Nx.GuideData[L["Flight Master"]][zon]=Nx.GuideData[L["Flight Master"]][zon] .. format("|%s,%s,%s,%s",side,x,y,i)
+		Nx.GuideData[L["Flight Master"]][zon]=Nx.GuideData[L["Flight Master"]][zon] .. format("|%s,%s,%s,%s,%s",side,x,y,level,i)
 	end
 end
 FLIGHT_DATA = nil

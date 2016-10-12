@@ -113,7 +113,7 @@ function Nx.prt (...)
 	args[1] = string.gsub((args[1] or 'nil'), '(%%[0-9.]*([cdeEfgGioqsuxX]))', replace_placeholders)
 
 	local f = Nx.prtChatFrm or DEFAULT_CHAT_FRAME
-	f:AddMessage (Nx.TXTBLUE..L["Carbonite"].." |cffffffff".. format (unpack(args)), 1, 1, 1)
+	f:AddMessage ("|cffff0000[" .. Nx.TXTBLUE..L["Carbonite"].."|cffff0000] |cffffffff".. format (unpack(args)), 1, 1, 1)
 end
 
 function Nx.prtraw (msg)
@@ -1845,11 +1845,11 @@ function Nx.Window:Adjust (skipChildren)
 		local x, y
 
 		for n = 1, #self.ChildFrms do
-
+			
 			local child = self.ChildFrms[n]
 			local cf = child.Frm
 			
-			if cf then			
+			if cf and not cf:IsProtected() then			
 				x = child.PosX1
 				if x < 0 then
 					x = w + x	-- Offset from right edge
@@ -2807,6 +2807,7 @@ end
 
 function Nx.Window:OnMinBut (but, id, click)
 	self:SetMinimize (but:GetPressed())
+	self.SaveData["Minimized"] = but:GetPressed()
 end
 
 function Nx.Window:ToggleMinimize()
@@ -5100,9 +5101,9 @@ function Nx.List:GetFrame (list, typ)
 		self.FrmsUniqueI = self.FrmsUniqueI + 1
 		if typ == "Color" then
 			f = CreateFrame ("ColorSelect", nil, list.Frm)
-		elseif typ == "WatchItem" then
-			f = CreateFrame ("Button", "NxListFrms" .. self.FrmsUniqueI, list.Frm, "NxWatchListItem")
-			f:SetAttribute ("type1", "item")
+		elseif typ == "WatchItem" then							
+				f = CreateFrame ("Button", "NxListFrms" .. self.FrmsUniqueI, list.Frm, "NxWatchListItem")
+				f:SetAttribute ("type1", "item")			
 		elseif typ == "Info" then
 			f = Nx.Info:CreateFrame (list.Frm)
 		end
