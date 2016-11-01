@@ -2931,9 +2931,10 @@ function Nx.Quest:ProcessQuestDB(questTotal)
 		end
 	end
 	Nx.prt("|cff00ff00[|cffffff00QUEST LOADER|cff00ff00] |cffffffff" .. questTotal .. " Quests Loaded")
-	Nx.Quest:RecordQuestsLog()
-	--Nx.Quest.Watch:Update()
 	Nx.QInit = true
+	--Nx.Quest.List:LogUpdate()
+	C_Timer.After(1, function() Nx.Quest:RecordQuests() end)
+	--Nx.Quest.Watch:Update()
 end
 
 function Nx.Quest:LoadQuestDB()
@@ -3352,7 +3353,6 @@ function Nx.Quest:RecordQuests(worldcheck)
 --	Nx.prt ("Record Quests")
 	local self = Nx.Quest
 	local qcnt = GetNumQuestLogEntries()
-
 	for qn = 1, qcnt do	-- Test all quests
 
 		local title, level = GetQuestLogTitle (qn)
@@ -3521,6 +3521,7 @@ function Nx.Quest:RecordQuestsLog()
 			SelectQuestLogEntry (qn)
 			local qDesc, qObj = GetQuestLogQuestText()
 			local qId, qLevel = self:GetLogIdLevel (questID)
+			--Nx.prt("%s", qDesc)
 			if qId then
 				local quest = Nx.Quests[qId]
 				local lbCnt = GetNumQuestLeaderBoards (qn)
@@ -3819,7 +3820,7 @@ function Nx.Quest:ScanBlizzQuestData()
 
 	self.ScanBlizzMapId = 1
 	-- Use delay or some quests won't be ready
-	QScanBlizz = Nx:ScheduleTimer(self.ScanBlizzQuestDataTimer,1,self)
+	QScanBlizz = C_Timer.After(1, function() Nx.Quest:ScanBlizzQuestDataTimer() end) 
 end
 
 function Nx.Quest:IsDaily(checkID)
@@ -3830,6 +3831,7 @@ function Nx.Quest:IsDaily(checkID)
 			if frequency == LE_QUEST_FREQUENCY_DAILY or frequency == LE_QUEST_FREQUENCY_WEEKLY then
 				isdaily = true
 			end
+			break
 		end
 	end
 	return isdaily
@@ -3897,6 +3899,10 @@ function Nx.Quest:MapChanged()
 end
 
 function Nx.Quest:ScanBlizzQuestDataZone()
+	if not Nx.QInit then
+		return
+	end
+	
 	--local tm = GetTime()
 	local num = QuestMapUpdateAllQuests()		-- Blizz calls these in this order
 	if num > 0 then
@@ -4117,7 +4123,7 @@ end
 
 function Nx.Quest:GetLogIdLevel (questID)
 	if questID > 0 then
-		local qlink = GetQuestLink (GetQuestLogIndexByID(questID))
+		local qlink = GetQuestLink (questID)
 		if qlink then
 			local s1, _, id, level = strfind (qlink, "Hquest:(%d+):(.%d*)")
 			if s1 then
@@ -4564,7 +4570,7 @@ function Nx.Quest:TellPartyOfChanges()
 
 	for _, cur in ipairs (curq) do
 
-		if cur.QI > 0 and not QuestMapFrame_IsQuestWorldQuest (cur.QI) then
+		if cur.QI > 0 and not QuestUtils_IsQuestWorldQuest (cur.QI) then
 
 			for n = 1, cur.LBCnt do
 
@@ -5369,7 +5375,7 @@ function Nx.Quest.List:Open()
 	win:RegisterEvent ("QUEST_PROGRESS", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_COMPLETE", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_ACCEPTED", self.OnQuestUpdate)
-	win:RegisterEvent ("QUEST_REMOVED", self.OnQuestUpdate)
+	--win:RegisterEvent ("QUEST_REMOVED", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_TURNED_IN", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_DETAIL", self.OnQuestUpdate)
 	win:RegisterEvent ("SCENARIO_UPDATE", self.OnQuestUpdate)
@@ -6556,8 +6562,11 @@ end
 function Nx.Quest.List:Refresh()
 	self:LogUpdate()
 	Nx.Quest:ScanBlizzQuestDataZone()
-	self:LogUpdate()
-	C_Timer.After(2, function() Nx.Quest:RecordQuestsLog() end)
+	--self:LogUpdate()
+	C_Timer.After(.5, function() 
+		Nx.Quest:RecordQuestsLog()
+		Nx.Quest.List:LogUpdate()
+	end)
 end
 
 function Nx.Quest.List:OnQuestUpdate (event, ...)
@@ -6640,7 +6649,7 @@ function Nx.Quest.List:OnQuestUpdate (event, ...)
 			self:Refresh(event)
 		end
 	elseif event == "QUEST_REMOVED" then
-		if self.Win:IsShown() then self:LogUpdate() end
+		--self:LogUpdate()
 	else
 		Nx.Quest.Watch:Update()
 	end
@@ -7846,12 +7855,12 @@ function Nx.Quest:UpdateIcons (map)
 	local activeWQ = {}
 	if Map.UpdateMapID ~= 9000 then
 		local taskInfo = C_TaskQuest.GetQuestsForPlayerByMapID(Map.UpdateMapID);
-		if taskInfo then
+		if taskInfo and Nx.db.char.Map.ShowWorldQuest then
 			for i=1,#taskInfo do
 				local info = taskInfo[i]
 				local questId = taskInfo[i].questId
 				local title, faction = C_TaskQuest.GetQuestInfoByQuestID(questId)
-				if QuestMapFrame_IsQuestWorldQuest (questId) then
+				if QuestUtils_IsQuestWorldQuest (questId) then
 					activeWQ[questId] = true
 					C_TaskQuest.RequestPreloadRewardData (questId)
 					local tid, name, questtype, rarity, elite, tradeskill = GetQuestTagInfo (questId)
@@ -9291,8 +9300,6 @@ function Nx.Quest.Watch:UpdateList()
 							local obj = quest and (quest["End"] or quest["Start"])
 							if qId == 0 then
 								list:ItemSetButton ("QuestWatchErr", false)
-							elseif not obj then
-								list:ItemSetButton ("QuestWatchErr", false)
 							elseif isComplete or lbNum == 0 then
 								local butType = "QuestWatch"
 								local pressed = false
@@ -9302,15 +9309,19 @@ function Nx.Quest.Watch:UpdateList()
 								if Quest:IsTargeted (qId, 0) then
 									butType = "QuestWatchTarget"
 								end
-								local name, zone = Quest:GetSEPos (obj)
-								if not zone or not zone then
-									butType = "QuestWatchErr"
+								if obj then 
+									local name, zone = Quest:GetSEPos (obj)
+									if not zone or not zone then
+										butType = "QuestWatchErr"
+									end
 								end
 								if isComplete and cur.IsAutoComplete then
 									butType = "QuestWatchAC"
 									pressed = false
 								end
-								list:ItemSetButton (butType, pressed)
+								list:ItemSetButton (butType, pressed)	
+							elseif not obj then
+								list:ItemSetButton ("QuestWatchErr", false)
 							else
 								list:ItemSetButton ("QuestWatchTip", false)		-- QuestWatchTip  >  QuestWatch?
 							end

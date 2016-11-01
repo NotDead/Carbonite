@@ -161,6 +161,8 @@ local defaults = {
 			ShowGatherL = false,
 			ShowQuestGivers = 1,
 			ShowMailboxes = true,
+			ShowRaidBoss = true,
+			ShowWorldQuest = true,
 			ShowCustom = true,
 			ShowCCity = false,
 			ShowCExtra = true,
@@ -975,7 +977,7 @@ function Nx:UnitDCapture()
 	if data and typ == 3 then
 
 		local mid = GetCurrentMapAreaID()
-		local plZX, plZY = GetPlayerMapPosition ("player")
+		local plZX, plZY = Nx.Map.GetPlayerMapPosition ("player")
 		if mid and (plZX > 0 or plZY > 0) then
 
 			local s = data[id] or "0~0~~~~"
@@ -998,7 +1000,7 @@ function Nx:UnitDTip()
 	if data and typ == 3 then
 
 		local midCur = GetCurrentMapAreaID()
-		local plZX, plZY = GetPlayerMapPosition ("player")
+		local plZX, plZY = Nx.Map.GetPlayerMapPosition ("player")
 		if midCur and (plZX > 0 or plZY > 0) then
 
 			local react = UnitReaction ("mouseover", "player")
@@ -1282,7 +1284,7 @@ function Nx:NXOnUpdate (elapsed)
 
 		if t > self.NetPlyrSendTime then
 
-			local plX, plY = GetPlayerMapPosition ("player")
+			local plX, plY = Nx.Map.GetPlayerMapPosition ("player")
 
 			if plX > 0 or plY > 0 then
 
@@ -3026,7 +3028,7 @@ Nx.GatherInfo = {
 		{ 700, "inv_herbalism_70_felwort",L["Felwort"]},
 		{ 700, "inv_herbalism_70_fjarnskaggl",L["Fjarnskaggl"]},
 		{ 700, "inv_herbalism_70_foxflower",L["Foxflower"]},
-		{ 700, "inv_herbalism_70_starlightrose",L["Starlight Rose"]},
+		{ 700, "inv_herbalism_70_starlightrosepetals",L["Starlight Rose"]},
 	},
 	["M"] = {	-- Mine node
 		{ 325,	"INV_Ore_Adamantium", L["Adamantite Deposit"]},
@@ -3332,6 +3334,13 @@ function Nx:GatherNodeToCarb (id)
 		[250] = 40,
 		[251] = 42,
 		[252] = 43,
+		-- Legion
+		[253] = 47,
+		[254] = 49,
+		[255] = 48,
+		[256] = 44,
+		[257] = 46,
+		[258] = 45,
 	-- Herbalism Nodes
 		[401] = 30,
 		[402] = 34,
@@ -3408,6 +3417,13 @@ function Nx:GatherNodeToCarb (id)
 		[473] = 69,
 		[474] = 64,
 		[475] = 70,
+		-- Legion
+		[476] = 71,
+		[477] = 72,
+		[478] = 73,
+		[479] = 74,
+		[480] = 75,
+		[481] = 76,
 	}
 	return gatherIDs[id]
 end
