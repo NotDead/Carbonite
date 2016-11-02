@@ -373,8 +373,9 @@ Nx.Zones = {
 	[1096] = L["Eye of Azshara"] .. "|100|110|2|8||",
 	[1097] = L["Temple of the Jade Serpent"] .. "|100|110|3|5|806|55.88|55.64|0",
 	[1099] = L["Black Rook Hold"] .. "|100|110|3|5|1018|56|37.4|0", -- Illidan flashback scenario
-	[1100] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|0",
+	[1100] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|0", -- Scenario
 	[1102] = L["The Arcway"] .. "|100|110|3|5|1033|50|50|0", -- Suramar rep ending scenario
+	[1115] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|0", -- New 5-man in Legion
 	[1104] = L["The Oculus"] .. "|100|110|3|5|486|27.52|26.75|0",
 	[1105] = L["Scarlet Monastery"] .. "|100|110|3|5|20|85.57|36.04|0",
 }
