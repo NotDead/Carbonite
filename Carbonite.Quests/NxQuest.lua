@@ -2779,7 +2779,6 @@ function Nx.Quest:Init()
 			end
 		end
 	end
-<<<<<<< 250f2cd44bddd96f4abcd825168036ec10a7c61c
 	
 end
 
@@ -2788,12 +2787,6 @@ function Nx.Quest:ProcessQuestDB(questTotal)
 		C_Timer.After(5, function() Nx.Quest:ProcessQuestDB(questTotal) end)
 		return
 	end
-=======
-	Nx.QInit = true
-end
-
-function Nx.Quest:LoadQuestDB()
->>>>>>> Fixes quest UI opening and closing after WoD.
 	local Map = Nx.Map
 	local maxLoadLevel = Nx.qdb.profile.Quest.maxLoadLevel
 	local enFact = Nx.PlFactionNum == 1 and 1 or 2
