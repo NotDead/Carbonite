@@ -759,10 +759,12 @@ function Nx.Map:Create (index)
 
 	local item = showMenu:AddItem (0, L["Show Custom Icons"], func, m)
 	item:SetChecked (Nx.db.char.Map, "ShowCustom")
-
-	local item = showMenu:AddItem(0, L["Show Archaeology Blobs"], func, m)
-	item:SetChecked (Nx.db.char.Map, "ShowArchBlobs")
-
+	local item = showMenu:AddItem(0, L["Show Instance Raid Bosses"], func, m)
+	item:SetChecked (Nx.db.char.Map, "ShowRaidBoss")
+	local item = showMenu:AddItem(0, L["Show World Quests"], func, m)
+	item:SetChecked (Nx.db.char.Map, "ShowWorldQuest")
+	local item = showMenu:AddItem(0, L["Show Archaeology Blobs"], func, m)	
+	item:SetChecked (Nx.db.char.Map, "ShowArchBlobs")	
 	local item = showMenu:AddItem(0, L["Show Quest Blobs"], func, m)
 	item:SetChecked (Nx.db.char.Map, "ShowQuestBlobs")
 
@@ -1129,8 +1131,14 @@ function Nx.Map:Create (index)
 
 	MapIShow = Nx:ScheduleTimer(func, 1, m)
 
-	--
-
+	-- Show Quest Log - restore World tooltip
+	hooksecurefunc ("ShowUIPanel", function(...) 
+		WorldMap_RestoreTooltip()
+	end)
+	hooksecurefunc ("HideUIPanel", function(...) 
+		WorldMap_HijackTooltip(m.Frm)
+	end)
+	
 	return m
 end
 
@@ -2954,7 +2962,7 @@ function Nx.Map:BGMenu_Send (msg)
 	for i = 1, members do
 
 		local unit = unitName..i
-		local pX, pY = Nx.GetPlayerMapPosition (unit)
+		local pX, pY = Nx.Map.GetPlayerMapPosition (unit)
 
 		if (pX > 0 or pY > 0) and not UnitIsDeadOrGhost (unit) then
 
@@ -3044,7 +3052,7 @@ function Nx.Map:HijackBlizzBountyMap()
 	local bountyBoardLocation = bountyBoard:GetDisplayLocation()
 	if bountyBoardLocation then
 		WorldMapFrame_SetOverlayLocation(bountyBoard, bountyBoardLocation);
-	end
+	end	
 	bountyBoard:Show()
 end
 
@@ -3152,7 +3160,9 @@ function Nx.Map:ToggleSize (szmode)
 
 			map:MaxSize()
 		end
-		Nx.Map:HijackBlizzBountyMap()
+		if Nx.db.char.Map.ShowWorldQuest then
+			Nx.Map:HijackBlizzBountyMap()
+		end
 	elseif szmode then
 		win:Show (false)
 
@@ -3162,8 +3172,9 @@ function Nx.Map:ToggleSize (szmode)
 		--WorldMapPlayerLower:SetAlpha(0)
 		--WorldMapPlayerUpper:SetAlpha(0)
 		map:MaxSize()
-		
-		Nx.Map:HijackBlizzBountyMap()
+		if Nx.db.char.Map.ShowWorldQuest then
+			Nx.Map:HijackBlizzBountyMap()
+		end
 	else
 		MapBarFrame:SetParent("WorldMapFrame")
 		--WorldMapPlayerLower:SetAlpha(1)
@@ -3195,9 +3206,6 @@ function Nx.Map:RestoreSize()
 		if Nx.db.profile.Map.MaxRestoreHide then
 			self.Win:Show (false)
 		end
-	end
-	if self:IsInstanceMap(Nx.Map.UpdateMapID) then
-		self.Scale = 120.0
 	end
 	local wname = self:GetWinName()
 	for n, name in pairs (UISpecialFrames) do
@@ -3695,10 +3703,12 @@ function Nx.Map.OnUpdate (this, elapsed)	--V4 this
 	end
 
 	if Nx.db.profile.Map.ShowTitleXY then
-		if map.DebugFullCoords then
-			title = title .. format (" %4.2f, %4.2f", map.PlyrRZX, map.PlyrRZY)
-		else
-			title = title .. format (" %4.1f, %4.1f", map.PlyrRZX, map.PlyrRZY)
+		if map.PlyrRZX ~= 0 or map.PlyrRZY ~= 0 then				
+			if map.DebugFullCoords then
+				title = title .. format (" %4.2f, %4.2f", map.PlyrRZX, map.PlyrRZY)
+			else
+				title = title .. format (" %4.1f, %4.1f", map.PlyrRZX, map.PlyrRZY)
+			end		
 		end
 	end
 
@@ -3776,15 +3786,7 @@ function Nx.Map.OnUpdate (this, elapsed)	--V4 this
 						local lrid = Nx.Map.MapWorldInfo[rid].EntryMId
 						if lrid ~= nil then rid = lrid end
 					end
-					if map:IsInstanceMap(rid) then
-						if map.Win:IsSizeMax() then
-							map.Scale = 256
-						else
-							map.Scale = 120
-						end
-					else
-						map.Scale = map.RealScale
-					end
+					map.Scale = map.RealScale					
 					local lvl = GetCurrentMapDungeonLevel()
 					if lvl ~= map.InstLevelSet then
 						mapId = 0	-- Force set
@@ -4179,7 +4181,15 @@ function Nx.Map:Update (elapsed)
 		end
 		self.Scale = self.RealScale
 	end
-	local plZX, plZY = Nx.GetPlayerMapPosition ("player")
+	local plZX, plZY = Nx.Map.GetPlayerMapPosition ("player")
+
+	if Nx.Map:IsInstanceMap(Nx.Map.RMapId) or Nx.Map:IsBattleGroundMap(Nx.Map.RMapId) then
+		Nx.Map.MoveWorldMap()
+		Nx.Map:GetMap(1).PlyrFrm:Hide()
+	else
+		Nx.Map.RestoreWorldMap()
+		Nx.Map:GetMap(1).PlyrFrm:Show()
+	end
 	if (Nx.Map.RMapId ~= Nx.Map.UpdateMapID) then
 		plZX = 0
 		plZY = 0
@@ -4432,8 +4442,9 @@ function Nx.Map:Update (elapsed)
 	if IsShiftKeyDown() then
 		plSize = 5
 	end
-	self.PlyrFrm:Show()
-	self:ClipFrameW (self.PlyrFrm, self.PlyrX, self.PlyrY, plSize, plSize, self.PlyrDir)
+	if self.PlyrFrm:IsVisible() then
+		self:ClipFrameW (self.PlyrFrm, self.PlyrX, self.PlyrY, plSize, plSize, self.PlyrDir)
+	end
 	self.InCombat = UnitAffectingCombat ("player")
 	local g = 1
 	local b = 1
@@ -4523,8 +4534,7 @@ function Nx.Map:Update (elapsed)
 
 	local oldLev = self.Level
 
-	if IsShiftKeyDown() then
-
+	if IsShiftKeyDown() or inBG then
 		oldLev = oldLev - 4
 		self.Level = self.Level + 16
 	end
@@ -4962,13 +4972,6 @@ function Nx.Map:SwitchRealMap (id)
 		if self:IsInstanceMap (id) then
 			self.LOpts.NXMMFull = true
 		end
-	else
-		if self:IsInstanceMap(id) then
-			s = self.Scale
-			self.Scale = 120.0
-		else
-			self.Scale = self.RealScale
-		end
 	end
 	local map = Nx.Map:GetMap (1)
 	map.Guide:UpdateMapIcons()
@@ -5188,7 +5191,7 @@ function Nx.Map:UpdateGroup (plX, plY)
 
 		local mapId = self.MapId
 
-		local pX, pY = Nx.GetPlayerMapPosition (unit)
+		local pX, pY = Nx.Map.GetPlayerMapPosition (unit)
 		if pX <= 0 and pY <= 0 then
 
 			local info = palsInfo[name]
@@ -8663,33 +8666,21 @@ function Nx.Map:SetCurrentMap (mapId)
 			end
 		end
 		if self:IsInstanceMap(mapId) then	-- Instance?
-
-			self.BaseScale = .025
-
 			local aid = mapId
-
---			Nx.prtCtrl ("SetCurrentMap %s %s", mapId, aid or "nil")
-
 			if aid then
 				self.MapId = 0				-- Force change (needed?)
-
 				if mapId == self:GetRealBaseMapId() then
 					SetMapToCurrentZone()					
-
 				else
 					local caid = GetCurrentMapAreaID()
-
 					if caid ~= aid then
 --						Nx.prt ("SetCurrentMap dif %s", caid)
 						SetMapByID (aid)						
 						SetDungeonMapLevel (1)
 					end
 				end
-
-
 			else
 				if mapId == self:GetRealBaseMapId() then
-
 					self.MapId = 0				-- Force change
 					SetMapToCurrentZone()					
 				else
@@ -8698,7 +8689,6 @@ function Nx.Map:SetCurrentMap (mapId)
 				end
 			end
 		end
-
 		self.InstLevelSet = GetCurrentMapDungeonLevel()
 	end
 end
@@ -10524,6 +10514,183 @@ function Nx.Map:VehicleDumpPos()
 		end
 	end
 end
+
+function Nx.Map.RestoreWorldMap()
+	if not Nx.Map.WMDF then
+		return
+	end
+	local numOfDetailTiles = GetNumberOfDetailTiles();
+	for i=1, numOfDetailTiles do
+		Nx.Map.WMDT[i]:SetTexture(nil);	
+	end
+	Nx.Map.WMDF:Hide()
+	local index = 1
+	local bossButton = _G["NXEJMapButton"..index]	
+	while bossButton do
+		bossButton:Hide()
+		index = index + 1
+		bossButton = _G["NXEJMapButton"..index]
+	end	
+end
+
+function Nx.Map.MoveWorldMap()	
+	local mapName, textureHeight, _, isMicroDungeon, microDungeonMapName = GetMapInfo()
+	if not mapName then
+		return
+	end
+	if not Nx.Map.WMDF then
+		Nx.Map.WMDF = CreateFrame("Frame", "WMDF")		
+		Nx.Map.WMDF:SetFrameStrata("BACKGROUND")
+		Nx.Map.WMDT = {}
+		Nx.Map.EJMB = {}
+		for i = 1,12 do
+			Nx.Map.WMDT[i] = Nx.Map.WMDF:CreateTexture("WMDT" .. i)						
+		end		
+		Nx.Map.WMDT[1]:SetPoint("TOPLEFT")
+		Nx.Map.WMDT[2]:SetPoint("TOPLEFT","WMDT1","TOPRIGHT")
+		Nx.Map.WMDT[3]:SetPoint("TOPLEFT","WMDT2","TOPRIGHT")
+		Nx.Map.WMDT[4]:SetPoint("TOPLEFT","WMDT3","TOPRIGHT")
+		Nx.Map.WMDT[5]:SetPoint("TOPLEFT","WMDT1","BOTTOMLEFT")
+		Nx.Map.WMDT[6]:SetPoint("TOPLEFT","WMDT5","TOPRIGHT")
+		Nx.Map.WMDT[7]:SetPoint("TOPLEFT","WMDT6","TOPRIGHT")
+		Nx.Map.WMDT[8]:SetPoint("TOPLEFT","WMDT7","TOPRIGHT")
+		Nx.Map.WMDT[9]:SetPoint("TOPLEFT","WMDT5","BOTTOMLEFT")
+		Nx.Map.WMDT[10]:SetPoint("TOPLEFT","WMDT9","TOPRIGHT")
+		Nx.Map.WMDT[11]:SetPoint("TOPLEFT","WMDT10","TOPRIGHT")
+		Nx.Map.WMDT[12]:SetPoint("TOPLEFT","WMDT11","TOPRIGHT")
+	end
+	Nx.Map.WMDF:SetParent(Nx.Map:GetMap(1).Frm)
+	Nx.Map.WMDF:SetFrameLevel(20)
+	Nx.Map.WMDF:SetWidth(Nx.Map:GetMap(1).MapW)
+	Nx.Map.WMDF:SetHeight(Nx.Map:GetMap(1).MapH)
+	Nx.Map.WMDF:Show()
+	
+	local dungeonLevel = GetCurrentMapDungeonLevel()
+	if (DungeonUsesTerrainMap()) then
+		dungeonLevel = dungeonLevel - 1
+	end
+
+	local mapID, isContinent = GetCurrentMapAreaID()
+
+	local fileName
+
+	local path
+	if (not isMicroDungeon) then
+		path = "Interface\\WorldMap\\"..mapName.."\\"
+		fileName = mapName
+	else
+		path = "Interface\\WorldMap\\MicroDungeon\\"..mapName.."\\"..microDungeonMapName.."\\"
+		fileName = microDungeonMapName
+	end
+
+	if ( dungeonLevel > 0 ) then
+		fileName = fileName..dungeonLevel.."_"
+	end
+
+	local numOfDetailTiles = GetNumberOfDetailTiles()
+	for i=1, numOfDetailTiles do
+		local texName = path..fileName..i	
+		Nx.Map.WMDT[i]:SetWidth(Nx.Map.WMDF:GetWidth() / 3.9)		
+		Nx.Map.WMDT[i]:SetHeight(Nx.Map.WMDF:GetHeight() / 2.6)
+		Nx.Map.WMDT[i]:SetTexture(texName)
+	end	
+	Nx.Map.WMDF:SetAllPoints()
+	NXWorldMapUnitPositionFrame:SetParent("WMDF")
+	NXWorldMapUnitPositionFrame:SetAllPoints()
+	Nx.Map:UpdatePlayerPositions()
+	
+	if Nx.db.char.Map.ShowRaidBoss then
+		local width = Nx.Map.WMDF:GetWidth()
+		local height = Nx.Map.WMDF:GetHeight()
+
+		local bossButton, questPOI, displayInfo, _
+		local index = 1
+		local x, y, instanceID, name, description, encounterID = EJ_GetMapEncounter(index, WorldMapFrame.fromJournal)
+		while name do
+			bossButton = _G["NXEJMapButton"..index]
+			if not bossButton then -- create button
+				bossButton = CreateFrame("Button", "NXEJMapButton"..index, Nx.Map.WMDF, "EncounterMapButtonTemplate")				
+			end
+
+			bossButton.instanceID = instanceID
+			bossButton.encounterID = encounterID
+			bossButton.tooltipTitle = name
+			bossButton.tooltipText = description
+			bossButton:SetPoint("CENTER", Nx.Map.WMDF, "BOTTOMLEFT", x*width, y*height)
+			bossButton:SetFrameStrata("HIGH")
+			_, _, _, displayInfo = EJ_GetCreatureInfo(1, encounterID)
+			bossButton.displayInfo = displayInfo
+			bossButton:SetWidth(32)
+			bossButton:SetHeight(32)
+			if ( displayInfo ) then
+				SetPortraitTexture(bossButton.bgImage, displayInfo)
+				bossButton.bgImage:SetWidth(24)
+				bossButton.bgImage:SetHeight(24)
+			else
+				bossButton.bgImage:SetTexture("DoesNotExist")
+			end			
+			bossButton:Show()
+			index = index + 1
+			x, y, instanceID, name, description, encounterID = EJ_GetMapEncounter(index, WorldMapFrame.fromJournal)
+		end
+		WorldMapFrame.hasBosses = index ~= 1
+		
+		bossButton = _G["NXEJMapButton"..index]
+		while bossButton do
+			bossButton:Hide()
+			index = index + 1
+			bossButton = _G["NXEJMapButton"..index]
+		end	
+	end	
+end
+
+function Nx.Map:UpdatePlayerPositions() -- Copy of the local defined player arrow function out of blizzards map code
+	local timeNow = GetTime()
+
+	NXWorldMapUnitPositionFrame:ClearUnits()
+
+	local r, g, b = CheckColorOverrideForPVPInactive("player", timeNow, 1, 1, 1)
+	NXWorldMapUnitPositionFrame:SetPlayerArrowSize(24)
+	local playerArrowSize = NXWorldMapUnitPositionFrame:GetPlayerArrowSize()
+	NXWorldMapUnitPositionFrame:AddUnit("player", "Interface\\WorldMap\\WorldMapArrow", playerArrowSize, playerArrowSize, r, g, b, 1, 7, true)
+
+	local isInRaid = IsInRaid()
+	local memberCount = 0
+	local unitBase
+
+	if isInRaid then
+		memberCount = MAX_RAID_MEMBERS
+		unitBase = "raid"
+	elseif IsInGroup() then
+		memberCount = MAX_PARTY_MEMBERS
+		unitBase = "party"
+	end
+
+	local groupMemberSize = NXWorldMapUnitPositionFrame:GetGroupMemberSize()
+
+	for i = 1, memberCount do
+		local unit = unitBase..i
+		if UnitExists(unit) and not UnitIsUnit(unit, "player") then
+			local atlas = UnitInSubgroup(unit) and "WhiteCircle-RaidBlips" or "WhiteDotCircle-RaidBlips"
+			local class = select(2, UnitClass(unit))
+			local r, g, b = CheckColorOverrideForPVPInactive(unit, timeNow, GetClassColor(class))
+			NXWorldMapUnitPositionFrame:AddUnitAtlas(unit, atlas, groupMemberSize, groupMemberSize, r, g, b, 1)
+		end
+	end
+
+	NXWorldMapUnitPositionFrame:FinalizeUnits()
+end
+
+function Nx.Map.GetPlayerMapPosition (unit)
+	local x, y = GetPlayerMapPosition (unit)
+	if x == nil or y == nil then
+		x = 0
+		y = 0
+	end
+	
+	return x, y
+end
+
 
 -------------------------------------------------------------------------------
 -- EOF

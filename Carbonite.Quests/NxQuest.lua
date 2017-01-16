@@ -69,7 +69,7 @@ local defaults = {
 			HCheckCompleted = false,
 			maxLoadLevel = false,
 			LevelsToLoad = 10,
-			MapQuestGiversHighLevel = 100,
+			MapQuestGiversHighLevel = 110,
 			MapQuestGiversLowLevel = 1,
 			MapShowWatchAreas = true,
 			MapWatchAreaAlpha = "1|1|1|.4",
@@ -1645,7 +1645,7 @@ local function QuestOptions ()
 							type = "toggle",
 							width = "full",
 							name = L["Load quest data by threshold"],
-							desc = L["Loads all the carbonite quest data between player level - level threshold to 100"],
+							desc = L["Loads all the carbonite quest data between player level - level threshold to 110"],
 							get = function()
 								return Nx.qdb.profile.Quest.maxLoadLevel
 							end,
@@ -1660,7 +1660,7 @@ local function QuestOptions ()
 							name = L["Level Threshold"],
 							desc = L["Levels under player level to load quest data on reload"],
 							min = 1,
-							max = 100,
+							max = 110,
 							step = 1,
 							bigStep = 1,
 							get = function()
@@ -3431,7 +3431,7 @@ function Nx.Quest:RecordQuestsLog()
 					local lbCnt = GetNumQuestLeaderBoards (qi)
 					for n = 1, lbCnt do
 
-						local desc, _typ, done = GetQuestLogLeaderBoard (n, qi)
+						local desc, _, done = GetQuestLogLeaderBoard (n, qi)
 
 						--V4
 
@@ -3506,8 +3506,8 @@ function Nx.Quest:RecordQuestsLog()
 	local index = #curq + 1
 
 	for qn = 1, qcnt do
-		local title, level, groupCnt, isHeader, isCollapsed, isComplete, frequency, questID = GetQuestLogTitle (qn)
-		local tagID, tag = GetQuestTagInfo(questID)
+		local title, level, groupCnt, isHeader, isCollapsed, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden = GetQuestLogTitle(qn)
+		local tagID, tag, worldQuestType, rarity, isElite, tradeskillLineIndex = GetQuestTagInfo(questID)
 		local isDaily = frequency
 --		Nx.prt ("Q %d %s %s %d %s %s %s %s", qn, isHeader and "H" or " ", title, level, tag or "nil", groupCnt or "nil", isDaily or "not daily", isComplete and "C1" or "C0")
 
@@ -3521,22 +3521,20 @@ function Nx.Quest:RecordQuestsLog()
 			SelectQuestLogEntry (qn)
 			local qDesc, qObj = GetQuestLogQuestText()
 			local qId, qLevel = self:GetLogIdLevel (questID)
+			--Nx.prt ("%d",GetQuestLogQuestType(qn)) -- Seeing what quest type function returns
 			--Nx.prt("%s", qDesc)
-			if qId then
+			if qId and not isHidden then
 				local quest = Nx.Quests[qId]
 				local lbCnt = GetNumQuestLeaderBoards (qn)
-
 				local cur = quest and fakeq[quest]
 				if not cur then
 					cur = {}
 					curq[index] = cur
 					cur.Index = index
 					index = index + 1
-
 				else
 					cur.Goto = nil					-- Might have been a goto quest
 					cur.Index = index
-
 					if quest then
 						self.Tracking[qId] = 0
 						self:TrackOnMap (qId, 0, true)
@@ -3601,7 +3599,7 @@ function Nx.Quest:RecordQuestsLog()
 				cur.LBCnt = lbCnt
 
 				for n = 1, lbCnt do
-					local desc, typ, done = GetQuestLogLeaderBoard (n, qn)
+					local desc, _, done = GetQuestLogLeaderBoard (n, qn)
 					cur[n] = desc or "?"		--V4
 					cur[n + 100] = done
 				end
@@ -3648,7 +3646,7 @@ function Nx.Quest:RecordQuestsLog()
 			end
 		end
 	end
-	--
+
 
 	if Nx.qdb.profile.Quest.PartyShare and self.Watch.ButShowParty:GetPressed() then
 
@@ -3831,6 +3829,7 @@ function Nx.Quest:IsDaily(checkID)
 			if frequency == LE_QUEST_FREQUENCY_DAILY or frequency == LE_QUEST_FREQUENCY_WEEKLY then
 				isdaily = true
 			end
+			break
 		end
 	end
 	return isdaily
@@ -4569,7 +4568,7 @@ function Nx.Quest:TellPartyOfChanges()
 
 	for _, cur in ipairs (curq) do
 
-		if cur.QI > 0 and not QuestUtils_IsQuestWorldQuest (cur.QI) then
+		if cur.QI > 0 then
 
 			for n = 1, cur.LBCnt do
 
@@ -4587,7 +4586,7 @@ function Nx.Quest:TellPartyOfChanges()
 							end
 						end
 					end
-					if not skip and (desc ~= cur[n] or done ~= cur[n + 100]) then
+					if not skip and desc ~= cur[n] then
 						Nx.Com:Send ("P", desc)
 --						Nx.prt ("%s", desc)
 					end
@@ -5366,11 +5365,16 @@ function Nx.Quest.List:Open()
 
 	win:SetUser (self, self.OnWin)
 	win:RegisterEvent ("PLAYER_LOGIN", self.OnQuestUpdate)
+	win:RegisterEvent ("UPDATE_FACTION", self.OnQuestUpdate)
+	win:RegisterEvent ("GARRISON_MISSION_COMPLETE_RESPONSE", self.OnQuestUpdate)
+	win:RegisterEvent ("WORLD_QUEST_COMPLETED_BY_SPELL", self.OnQuestUpdate)
+	win:RegisterEvent ("UNIT_QUEST_LOG_CHANGED", self.OnQuestUpdate)
+--	win:RegisterEvent ("QUESTLINE_UPDATE", self.OnQuestUpdate)
+--	win:RegisterEvent ("QUESTTASK_UPDATE", self.OnQuestUpdate)
 --	win:RegisterEvent ("QUEST_LOG_UPDATE", self.OnQuestUpdate)
 --  win:RegisterEvent ("QUEST_WATCH_UPDATE", self.OnQuestUpdate)
-	win:RegisterEvent ("UPDATE_FACTION", self.OnQuestUpdate)
-	win:RegisterEvent ("UNIT_QUEST_LOG_CHANGED", self.OnQuestUpdate)
-	win:RegisterEvent ("WORLD_QUEST_COMPLETED_BY_SPELL", self.OnQuestUpdate)
+--	win:RegisterEvent ("QUEST_WATCH_LIST_CHANGED", self.OnQuestUpdate)
+--	win:RegisterEvent ("QUEST_WATCH_OBJECTIVES_CHANGED", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_PROGRESS", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_COMPLETE", self.OnQuestUpdate)
 	win:RegisterEvent ("QUEST_ACCEPTED", self.OnQuestUpdate)
@@ -6561,18 +6565,19 @@ end
 function Nx.Quest.List:Refresh()
 	self:LogUpdate()
 	Nx.Quest:ScanBlizzQuestDataZone()
-	self:LogUpdate()
-	C_Timer.After(2, function() 
+	--self:LogUpdate()
+	C_Timer.After(.5, function() 
 		Nx.Quest:RecordQuestsLog()
 		Nx.Quest.List:LogUpdate()
 	end)
 end
 
 function Nx.Quest.List:OnQuestUpdate (event, ...)
-	--if event ~= "WORLD_MAP_UPDATE" then Nx.prt ("OnQuestUpdate %s", event) end
 	local Quest = Nx.Quest
 	local arg1, arg2, arg3 = select (1, ...)
-
+	
+	if event ~= "WORLD_MAP_UPDATE" then Nx.prtD ("OnQuestUpdate %s", event) end
+	
 	if event == "PLAYER_LOGIN" then
 		self.LoggingIn = true
 	elseif event == "QUEST_TURNED_IN" then
@@ -6647,12 +6652,12 @@ function Nx.Quest.List:OnQuestUpdate (event, ...)
 		else
 			self:Refresh(event)
 		end
-	elseif event == "QUEST_REMOVED" then
+	elseif event == "GARRISON_MISSION_COMPLETE_RESPONSE" then
 		self:LogUpdate()
 	else
 		Nx.Quest.Watch:Update()
 	end
---	Nx.prt ("OnQuestUpdate %s Done", event)
+--	Nx.prtD ("OnQuestUpdate %s Done", event)
 end
 
 -------------------------------------------------------------------------------
@@ -6689,14 +6694,14 @@ function Nx.Quest.List:LogUpdate()
 	if qn and qn > 0 then
 
 		local curi, cur = Quest:FindCurByIndex (qn)
+		if cur then
+			Quest.QIdsNew[cur.QId] = time()
 
-		Quest.QIdsNew[cur.QId] = time()
-
-		if Nx.qdb.profile.QuestWatch.AddNew and not Quest.DailyPVPIds[cur.QId] then
-			Quest.Watch:Add (curi,true)
+			if Nx.qdb.profile.QuestWatch.AddNew and not Quest.DailyPVPIds[cur.QId] then
+				Quest.Watch:Add (curi,true)
+			end
+			Quest:Capture (curi)
 		end
-		Quest:Capture (curi)
-
 --		Nx.prt ("OnQuestUpdate Watch %d %d", qn, i)
 	end
 	Quest:RestoreExpandQuests()
@@ -6880,12 +6885,14 @@ function Nx.Quest.List:Update()
 					if self.QOpts.NXShowObj then
 
 						local num = GetNumQuestLeaderBoards (qn)
+						local oCompColor = Nx.Quest.Cols["oCompColor"]
+						local oIncompColor = Nx.Quest.Cols["oIncompColor"]
 
 						local str = ""
 						local desc, typ, done
 						local zone, loc
 
-						for ln = 1, 15 do
+						for ln = 1, num do
 
 							zone = nil
 
@@ -6906,7 +6913,7 @@ function Nx.Quest.List:Update()
 								done = false
 							end
 							if not desc then desc = "?" end
-							color = done and "|cff5f5f6f" or "|cff9f9faf"
+							color = done and oCompColor or oIncompColor
 							str = format ("     %s%s", color, desc)
 
 							list:ItemAdd (qId * 0x10000 + ln * 0x100 + qn)
@@ -7854,7 +7861,7 @@ function Nx.Quest:UpdateIcons (map)
 	local activeWQ = {}
 	if Map.UpdateMapID ~= 9000 then
 		local taskInfo = C_TaskQuest.GetQuestsForPlayerByMapID(Map.UpdateMapID);
-		if taskInfo then
+		if taskInfo and Nx.db.char.Map.ShowWorldQuest then
 			for i=1,#taskInfo do
 				local info = taskInfo[i]
 				local questId = taskInfo[i].questId
@@ -8654,10 +8661,10 @@ function Nx.Quest.Watch:Open()
 	end
 
 	local item = menu:AddItem (0, L["Quest Giver Lower Levels To Show"], func, self)
-	item:SetSlider (Nx.qdb.profile.Quest, 0, 100, 1, "MapQuestGiversLowLevel")
+	item:SetSlider (Nx.qdb.profile.Quest, 0, 110, 1, "MapQuestGiversLowLevel")
 
 	local item = menu:AddItem (0, L["Quest Giver Higher Levels To Show"], func, self)
-	item:SetSlider (Nx.qdb.profile.Quest, 0, 100, 1, "MapQuestGiversHighLevel")
+	item:SetSlider (Nx.qdb.profile.Quest, 0, 110, 1, "MapQuestGiversHighLevel")
 
 --	local item = menu:AddItem (0, L["Group"], update, self)
 --	item:SetSlider (qopts, -200, 200, 1, "NXWPriGroup")
@@ -9170,7 +9177,11 @@ function Nx.Quest.Watch:UpdateList()
 									end
 								end
 								list:ItemAdd(0)
-								list:ItemSet(2,"|cffff00ff--------------------------")
+								if worldQuestType ~= nil then
+									list:ItemSet(2,"|cffff00ff------------------------------")
+								else
+									list:ItemSet(2,"|cffff00ff----------------------------")
+								end
 							end
 						end
 					end
@@ -9212,7 +9223,7 @@ function Nx.Quest.Watch:UpdateList()
 									end
 								end
 								list:ItemAdd(0)
-								list:ItemSet(2,"|cffff00ff--------------------------")
+								list:ItemSet(2,"|cffff00ff-------------------------------")
 							end
 						end
 					end
@@ -10096,9 +10107,11 @@ function Nx.Quest:TrackOnMap (qId, qObj, useEnd, target, skipSame)
 			questObj = useEnd and quest["End"] or quest["Start"]
 			name, zone, loc = Quest:UnpackSE (questObj)
 		else
-			questObj = quest["Objectives"][qObj]
-			if questObj and questObj[1] then
-				name, zone, loc = Nx.Quest:UnpackObjectiveNew (questObj[1])
+			if quest["Objectives"] ~= nil then
+				questObj = quest["Objectives"][qObj]
+				if questObj and questObj[1] then
+					name, zone, loc = Nx.Quest:UnpackObjectiveNew (questObj[1])
+				end
 			end
 		end
 

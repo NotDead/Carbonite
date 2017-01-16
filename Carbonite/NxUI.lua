@@ -127,9 +127,9 @@ function Nx.prtError (msg, ...)
 end
 
 -- Debug print
-function Nx.prtD (msg)
+function Nx.prtD (...)
 	if Nx.DebugOn then
-		Nx.prt (msg)
+		Nx.prt (...)
 	end
 end
 
@@ -707,18 +707,6 @@ end
 
 function Nx.Util_GetTimeElapsedMinSecStr (seconds)
 	return format ("%d:%02d", seconds / 60 % 60, seconds % 60)
-end
-
--- 7.1.0 CHANGES
-
-function Nx.GetPlayerMapPosition (unit)
-	local x, y = GetPlayerMapPosition (unit)
-	if x == nil or y == nil then
-		x = 0
-		y = 0
-	end
-	
-	return x, y
 end
 
 ---------------------------------------------------------------------------------------
