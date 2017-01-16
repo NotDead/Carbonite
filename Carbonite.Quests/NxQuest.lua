@@ -3395,79 +3395,80 @@ function Nx.Quest:RecordQuestsLog()
 
 		for curi, cur in ipairs (curq) do
 
-			local qi = cur.QI
-			if qi > 0 then
-
+			for qn = 1, qcnt do
+				local qi = qn
 				local title, level, groupCnt, isHeader, isCollapsed, isComplete, _, questID = GetQuestLogTitle (qi)
-				title = self:ExtractTitle (title)
+				if cur.QId == questID then
+					title = self:ExtractTitle (title)
 
---				Nx.prt ("QD %s %s %s %s", title, qi, isHeader and "H1" or "H0", isComplete and "C1" or "C0")
+	--				Nx.prt ("QD %s %s %s %s", title, qi, isHeader and "H1" or "H0", isComplete and "C1" or "C0")
 
-				if cur.Title == title then		-- Still matches?
+					if cur.Title == title then		-- Still matches?
 
-					local change
+						local change
 
-					if isComplete == 1 and not cur.Complete then
-						Nx.prt (L["Quest Complete '%s'"], title)
+						if isComplete == 1 and not cur.Complete then
+							Nx.prt (L["Quest Complete '%s'"], title)
 
-						if Nx.qdb.profile.Quest.SndPlayCompleted then
-							self:PlaySound()
+							if Nx.qdb.profile.Quest.SndPlayCompleted then
+								self:PlaySound()
+							end
+
+							if Nx.qdb.profile.Quest.AutoTurnInAC and cur.IsAutoComplete then
+								ShowQuestComplete (qi)
+							end
+
+							if Nx.qdb.profile.QuestWatch.RemoveComplete and not cur.IsAutoComplete then
+								self.Watch:RemoveWatch (cur.QId, cur.QI)
+								self.Watch:Update()
+								change = false
+							else
+								change = true
+							end
+
 						end
 
-						if Nx.qdb.profile.Quest.AutoTurnInAC and cur.IsAutoComplete then
-							ShowQuestComplete (qi)
-						end
+						local lbCnt = GetNumQuestLeaderBoards (qi)
+						for n = 1, lbCnt do
 
-						if Nx.qdb.profile.QuestWatch.RemoveComplete and not cur.IsAutoComplete then
-							self.Watch:RemoveWatch (cur.QId, cur.QI)
-							self.Watch:Update()
-							change = false
-						else
-							change = true
-						end
+							local desc, _typ, done = GetQuestLogLeaderBoard (n, qi)
 
-					end
+							--V4
 
-					local lbCnt = GetNumQuestLeaderBoards (qi)
-					for n = 1, lbCnt do
+							if desc and (desc ~= cur[n] or done ~= cur[n + 100]) then
 
-						local desc, _, done = GetQuestLogLeaderBoard (n, qi)
+	--							Nx.prt ("Q Change %s->%s", desc, cur[n] or "nil")
 
-						--V4
-
-						if desc and (desc ~= cur[n] or done ~= cur[n + 100]) then
-
---							Nx.prt ("Q Change %s->%s", desc, cur[n] or "nil")
-
-							if Nx.qdb.profile.QuestWatch.AddChanged then
-								if change == nil then
-									change = true
+								if Nx.qdb.profile.QuestWatch.AddChanged then
+									if change == nil then
+										change = true
+									end
 								end
+
+								local s1, _, oldCnt = strfind (cur[n] or "", "(%d+)/%d+ ")
+								if s1 then
+									oldCnt = tonumber (oldCnt)
+								end
+
+								local s1, _, newCnt = strfind (desc, "(%d+)/%d+ ")
+								if s1 then
+	--								Nx.prt ("%s %s", i, total)
+									newCnt = tonumber (newCnt)
+								end
+
+								if done or (oldCnt and newCnt and newCnt > oldCnt) then
+									self:Capture (curi, n)
+								end
+
+								lastChanged = cur
+
+								partySend = true
 							end
-
-							local s1, _, oldCnt = strfind (cur[n] or "", "(%d+)/%d+ ")
-							if s1 then
-								oldCnt = tonumber (oldCnt)
-							end
-
-							local s1, _, newCnt = strfind (desc, "(%d+)/%d+ ")
-							if s1 then
---								Nx.prt ("%s %s", i, total)
-								newCnt = tonumber (newCnt)
-							end
-
-							if done or (oldCnt and newCnt and newCnt > oldCnt) then
-								self:Capture (curi, n)
-							end
-
-							lastChanged = cur
-
-							partySend = true
 						end
-					end
 
-					if change and Nx.qdb.profile.QuestWatch.AddChanged then
-						self.Watch:Add (curi)
+						if change and Nx.qdb.profile.QuestWatch.AddChanged then
+							self.Watch:Add (curi)
+						end
 					end
 				end
 			end
@@ -3947,6 +3948,18 @@ function Nx.Quest:ScanBlizzQuestDataZone()
 
 							local s = title
 							local obj = format ("nil|%s|32|%f|%f|6|6",mapId, x, y)
+							
+							local finddata = GetQuestPOILeaderBoard(objective, qi)
+							if finddata then
+								for i = 1, lbCnt do
+									local desc = GetQuestLogLeaderBoard(i, qi)
+									if desc == finddata then 
+										quest["Objectives"][i] = {obj}
+										lbCnt = 0   -- got it, don't do next loop
+										break
+									end
+								end
+							end
 
 							for i = 1, lbCnt do
 								quest["Objectives"][i] = {obj}
@@ -5365,6 +5378,9 @@ function Nx.Quest.List:Open()
 
 	win:SetUser (self, self.OnWin)
 	win:RegisterEvent ("PLAYER_LOGIN", self.OnQuestUpdate)
+--	win:RegisterEvent ("QUEST_LOG_UPDATE", self.OnQuestUpdate)
+--  win:RegisterEvent ("QUEST_WATCH_UPDATE", self.OnQuestUpdate)
+	win:RegisterEvent ("QUEST_POI_UPDATE", self.OnQuestUpdate)
 	win:RegisterEvent ("UPDATE_FACTION", self.OnQuestUpdate)
 	win:RegisterEvent ("GARRISON_MISSION_COMPLETE_RESPONSE", self.OnQuestUpdate)
 	win:RegisterEvent ("WORLD_QUEST_COMPLETED_BY_SPELL", self.OnQuestUpdate)
@@ -6641,7 +6657,7 @@ function Nx.Quest.List:OnQuestUpdate (event, ...)
 			self:Refresh(event)
 		end
 
-	elseif event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "WORLD_QUEST_COMPLETED_BY_SPELL" then
+	elseif event == "QUEST_LOG_UPDATE" or event == "QUEST_POI_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "WORLD_QUEST_COMPLETED_BY_SPELL" then
 
 --		Nx.prtStack ("QUpdate")
 --		Nx.prt ("#%d", GetNumQuestLogEntries())
