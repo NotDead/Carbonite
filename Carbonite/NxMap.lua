@@ -5033,6 +5033,7 @@ function Nx.Map:ScanContinents()
 	--
 
 	ObjectiveTrackerFrame:UnregisterEvent ("WORLD_MAP_UPDATE")
+	WorldMapFrame:UnregisterEvent ("WORLD_MAP_UPDATE")
 
 	local hideT = {}
 	hideT[0] = true	-- WotLK has 0 index POIs for named locations
@@ -5137,6 +5138,7 @@ function Nx.Map:ScanContinents()
 	end
 
 	ObjectiveTrackerFrame:RegisterEvent ("WORLD_MAP_UPDATE")
+	WorldMapFrame:RegisterEvent ("WORLD_MAP_UPDATE")
 end
 
 --------
