@@ -587,8 +587,9 @@ function Nx.Map:Create (index)
 	win.Frm.NxMap = m
 
 	m.StartupShown = win:IsShown()
-	win.Frm:Show()	
-	
+	win.Frm:Show()
+	win.Frm:SetScript ("OnLeave", self.OnLeave)
+
 	-- Create main frame
 
 	local f = CreateFrame ("Frame", nil, UIParent)
@@ -3392,9 +3393,21 @@ function Nx.Map:OnEvent (event, ...)
 		self.Arch:Show()
 		self.QuestWin:Hide()
 	elseif event == "ZONE_CHANGED" then
+		if not WorldMapFrame:IsShown() then
+			SetMapToCurrentZone()
+		end
 		Nx.Map.Indoors = false
 	elseif event == "ZONE_CHANGED_INDOORS" then
+		if not WorldMapFrame:IsShown() then
+			SetMapToCurrentZone()
+		end
 		Nx.Map.Indoors = true
+	end
+end
+
+function Nx.Map:OnLeave (frame)
+	if not WorldMapFrame:IsShown() then
+		SetMapToCurrentZone()
 	end
 end
 
@@ -3959,9 +3972,6 @@ function Nx.Map:UpdateWorld()
 	end
 
 	self.NeedWorldUpdate = false
-	if not Nx.Map.MouseOver then		
-		SetMapToCurrentZone()
-	end
 	local mapId = self:GetCurrentMapId()
 	local winfo = self.MapWorldInfo[mapId]
 	if not winfo then
