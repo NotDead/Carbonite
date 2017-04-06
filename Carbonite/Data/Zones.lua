@@ -321,7 +321,7 @@ Nx.Zones = {
 	[1027] = L["The Cove of Nashal"] .. "|100|110|3|5|1017|50|50|0",
 	[1028] = L["Mardum, the Shattered Abyss"] .. "|100|100|2|8||",
 	[1031] = L["Broken Shore"] .. "|100|110|3|5|1021|50|50|0", -- Ret paladin artifact scenario
-	[1032] = L["Vault of the Wardens"] .. "|100|110|3|5|1015|0|0|0",
+	[1032] = L["Vault of the Wardens"] .. "|100|110|3|5|1015|48.2|82.7|5",
 	[1033] = L["Suramar"] .. "|100|110|2|8||",	
 	[1035] = L["Skyhold"] .. "|100|110|3|5|1017|50|50|0",
 	[1038] = L["Azshara"] .. "|100|110|3|5|1024|50|50|0", -- Thunder totem, Highmountain, Huln flashback scenario
@@ -375,10 +375,10 @@ Nx.Zones = {
 	[1099] = L["Black Rook Hold"] .. "|100|110|3|5|1018|56|37.4|0", -- Illidan flashback scenario
 	[1100] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|0", -- Scenario
 	[1102] = L["The Arcway"] .. "|100|110|3|5|1033|50|50|0", -- Suramar rep ending scenario
-	[1115] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|0", -- New 5-man in Legion
 	[1104] = L["The Oculus"] .. "|100|110|3|5|486|27.52|26.75|0",
 	[1105] = L["Scarlet Monastery"] .. "|100|110|3|5|20|85.57|36.04|0",
 	[1114] = L["Trial of Valor"] .. "|100|110|3|5|1017|68.3|66.2|1025",
+	[1115] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|0", -- New 5-man in Legion
 }
 
 Nx.SubNames = {
