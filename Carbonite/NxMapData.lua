@@ -3202,7 +3202,7 @@ Map.ZoneOverlays = {
 		["thastalah"] = "342,416,218,168",		
 	},
 	["brokenshore"] = {
-		["brokenshoresouth"] = "308,244,632,169",
+		["thelosttemple"] = "632,169,308,244",
 		["felragestrand"] = "596,100,332,276",
 		["tombofsargeras"] = "500,0,312,301",		
 		["theweepingterrace"] = "350,13,276,213",
@@ -3210,7 +3210,6 @@ Map.ZoneOverlays = {
 		["soulruin"] = "389,180,338,270",
 		["deadwoodlanding"] = "220,260,182,245",
 		["deliverancepoint"] = "312,302,387,314",
-		["thelosttemple"] = "613,126,337,289",
 	},
 	["highmountain"] = {
 		["bloodhunthighlands"] = "307,75,297,250",
