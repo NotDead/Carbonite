@@ -381,8 +381,10 @@ Nx.Zones = {
 	[1115] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|5", -- New 5-man in Legion
 	[1146] = L["Cathedral of Eternal Night"] .. "|110|110|3|5|1014|50|50|5",
 	[1149] = L["The Broken Shore"] .. "|110|110|3|5|1014|50|50|0", -- 7.2 scenario
+	[1156] = L["Legion Ship: Stormheim"] .. "|110|110|3|5|1017|50|50|0", -- 7.2 invasion scenario
 	[1157] = L["Legion Ship: Azsuna"] .. "|110|110|3|5|1015|50|50|0", -- 7.2 invasion scenario
 	[1158] = L["Legion Ship: Val'Sharah"] .. "|110|110|3|5|1018|50|50|0", -- 7.2 invasion scenario
+	[1159] = L["Legion Ship: Highmountain"] .. "|110|110|3|5|1024|50|50|0", -- 7.2 invasion scenario
 }
 
 Nx.SubNames = {
