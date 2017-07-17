@@ -387,6 +387,7 @@ Nx.Zones = {
 	[1157] = L["Legion Ship: Azsuna"] .. "|110|110|3|5|1015|50|50|0", -- 7.2 invasion scenario
 	[1158] = L["Legion Ship: Val'Sharah"] .. "|110|110|3|5|1018|50|50|0", -- 7.2 invasion scenario
 	[1159] = L["Legion Ship: Highmountain"] .. "|110|110|3|5|1024|50|50|0", -- 7.2 invasion scenario
+	[1161] = L["Stormstout Brewery"] .. "|110|110|3|5|807|39.16|338.43|0", -- Monk class hall scenario
 	[1177] = L["The Deaths of Chromie"] .. "|110|110|3|5|488|59.8|54.1|0",
 }
 
