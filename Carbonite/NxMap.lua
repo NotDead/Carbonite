@@ -10597,9 +10597,11 @@ function Nx.Map.MoveWorldMap()
 	Nx.Map.WMDF:SetAllPoints()
 	NXWorldMapUnitPositionFrame:SetParent("WMDF")
 	NXWorldMapUnitPositionFrame:SetAllPoints()
+	if not Nx.Map:GetMap(1).LOpts.NXMMFull then
 	Nx.Map:UpdatePlayerPositions()
+	end
 	
-	if Nx.db.char.Map.ShowRaidBoss then
+	if Nx.db.char.Map.ShowRaidBoss and not Nx.Map:GetMap(1).LOpts.NXMMFull then
 		local width = Nx.Map.WMDF:GetWidth()
 		local height = Nx.Map.WMDF:GetHeight()
 
