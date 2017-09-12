@@ -79,6 +79,12 @@ Map.MapInfo = {
 		X = 3000,
 		Y = -900,
 	},
+	[9] = {
+		Name = "Argus",
+		FileName = "Argus",
+		X = 7400,
+		Y = -6200,
+	},
 	[90] = {
 		Name = "BG",
 		X = 2000,
@@ -1495,6 +1501,32 @@ Map.MapWorldInfo = {
 	[1100] = {
 		BaseMap = 799,
 	},
+	[1135] = {
+		 Scale = 7.4,
+		 X = -300,
+		 Y = -300,
+		 Overlay = "ArgusSurface",
+		 Name = L["Krokuun"],
+	},
+	[1170] = {
+		 Scale = 6.8,
+		 X = -550,
+		 Y = -1300,
+		 Overlay = "ArgusMacAree",
+		 Name = L["Mac'Aree"],
+	},
+	[1171] = {
+		 Scale = 6.8,
+		 X = -1900,
+		 Y = -700,
+		 Overlay = "ArgusCore",
+		 Name = L["Antoran Wastes"],
+	},
+	[1184] = {
+		Scale = 37.67636,
+		X = -2599.2078125,
+		Y = -1864.271875,
+	},	
 	[9005] = {		-- Blade's Edge Arena
 		Name = L["Blade's Edge Arena"],
 		1,
@@ -3244,6 +3276,18 @@ Map.ZoneOverlays = {
 	["mardumtheshatteredabyss"] = {
 		["mardumtheshatteredabyss"] = "0,0,1024,768",
 	},
+	["argussurface"] = {
+		["krokulhovel"] = "428,364,307,304",
+	},
+	["arguscore"] = {
+		["terminus"] = "535,238,467,430",
+	},
+	-- local zone = GetMapInfo()
+	-- print(string.format("[\"%s\"] = ", zone))
+	-- local n = GetNumMapOverlays() for i=1,n do
+	-- local fn, c, d, a, b = GetMapOverlayInfo(i)
+	-- print(string.format("[\"%s\"] = \"%d,%d,%d,%d\"", fn, a, b, c, d))  
+	-- end
 }
 
 --------
@@ -8464,6 +8508,13 @@ Map.MiniMapBlks = {
 		1117,
 		11, 17,
 		Map.MapWorldInfo[1007].X + Map.MapInfo[8].X + 380, Map.MapWorldInfo[1007].Y + Map.MapInfo[8].Y - 147.5,
+		"World\\Minimaps\\Troll Raid"
+	},
+	[9] = {
+		Map.BrokenIslesMapBlks,
+		1117,
+		11, 17,
+		Map.MapWorldInfo[1184].X + Map.MapInfo[9].X + 0, Map.MapWorldInfo[1184].Y + Map.MapInfo[9].Y - 0,
 		"World\\Minimaps\\Troll Raid"
 	},
 	[464] = {
