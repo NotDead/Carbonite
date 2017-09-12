@@ -380,6 +380,7 @@ Nx.Zones = {
 	[1114] = L["Trial of Valor"] .. "|100|110|3|5|1017|68.3|66.2|1025",
 	[1115] = L["Karazhan"] .. "|100|110|3|5|32|47|74.94|5", -- New 5-man in Legion
 	[1116] = L["Pit of Saron"] .. "|110|110|3|5|1014|50|50|0", -- 7.2 DK follower scenario
+	[1135] = L["Krokuun"] .. "|110|110|2|9||",
 	[1146] = L["Cathedral of Eternal Night"] .. "|110|110|3|5|1021|50|50|5",
 	[1147] = L["Tomb of Sargeras"] .. "|110|110|3|5|1021|50|50|1025",
 	[1148] = L["Throne of the Four Winds"] .. "|110|110|3|5|720|38.4|80.6|0",
@@ -389,8 +390,17 @@ Nx.Zones = {
 	[1158] = L["Legion Ship: Val'Sharah"] .. "|110|110|3|5|1018|50|50|0", -- 7.2 invasion scenario
 	[1159] = L["Legion Ship: Highmountain"] .. "|110|110|3|5|1024|50|50|0", -- 7.2 invasion scenario
 	[1161] = L["Stormstout Brewery"] .. "|110|110|3|5|807|39.16|338.43|0", -- Monk class hall scenario
+	[1170] = L["Mac'Aree"] .. "|110|110|2|9||",
+	[1171] = L["Antoran Wastes"] .. "|110|110|2|9||",
 	[1172] = L["Hall of Communion"] .. "|110|110|3|5|493|80.2|54.3|0", -- 7.3 lead-in scenario
+	[1173] = L["Arcatraz"] .. "|110|110|3|5|1135|50|50|0", -- 7.3 Vindicaar scenario
+	[1174] = L["Azuremyst Isle"] .. "|110|110|3|5|464|50|50|0", -- 7.3 Argus intro scenario
 	[1177] = L["The Deaths of Chromie"] .. "|110|110|3|5|488|59.8|54.1|0",
+	[1192] = L["Invasion Point: Ceb'gar"] .. "|110|110|3|5|1135|47.0|77.7|0", -- Argus invasion point
+	[1193] = L["Invasion Point: Naigtal"] .. "|110|110|3|5|1170|70.5|38.5|0", -- Argus invasion point
+	[1194] = L["Invasion Point: Sangua"] .. "|110|110|3|5|1171|67.1|33.3|0", -- Argus invasion point
+	[1195] = L["Invasion Point: Val"] .. "|110|110|3|5|1135|47.0|77.7|0", -- Argus invasion point
+	[1197] = L["Greater Invasion Point: Mistress Alluradel"] .. "|110|110|3|5|1171|67.7|39.9|0", -- Argus invasion point
 }
 
 Nx.SubNames = {
