@@ -396,11 +396,15 @@ Nx.Zones = {
 	[1173] = L["Arcatraz"] .. "|110|110|3|5|1135|50|50|0", -- 7.3 Vindicaar scenario
 	[1174] = L["Azuremyst Isle"] .. "|110|110|3|5|464|50|50|0", -- 7.3 Argus intro scenario
 	[1177] = L["The Deaths of Chromie"] .. "|110|110|3|5|488|59.8|54.1|0",
+	[1178] = L["Seat of the Triumvirate"] .. "|110|110|3|5|1070|24.7|56.4|5",
 	[1192] = L["Invasion Point: Ceb'gar"] .. "|110|110|3|5|1135|47.0|77.7|0", -- Argus invasion point
 	[1193] = L["Invasion Point: Naigtal"] .. "|110|110|3|5|1170|70.5|38.5|0", -- Argus invasion point
 	[1194] = L["Invasion Point: Sangua"] .. "|110|110|3|5|1171|67.1|33.3|0", -- Argus invasion point
 	[1195] = L["Invasion Point: Val"] .. "|110|110|3|5|1135|47.0|77.7|0", -- Argus invasion point
 	[1197] = L["Greater Invasion Point: Mistress Alluradel"] .. "|110|110|3|5|1171|67.7|39.9|0", -- Argus invasion point
+	[1198] = L["Greater Invasion Point: Matron Folnuna"] .. "|110|110|3|5|1171|67.7|39.9|0", -- Argus invasion point
+	[1199] = L["Greater Invasion Point: Meto"] .. "|110|110|3|5|1171|67.7|39.9|0", -- Argus invasion point
+	[1200] = L["Greater Invasion Point: Sotanathor"] .. "|110|110|3|5|1171|67.7|39.9|0", -- Argus invasion point
 }
 
 Nx.SubNames = {
