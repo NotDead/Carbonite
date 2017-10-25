@@ -47,9 +47,6 @@ BINDING_HEADER_CarboniteQuests	= "|cffc0c0ff" .. L["Carbonite Quests"] .. "|r"
 BINDING_NAME_NxTOGGLEWATCHMINI	= L["NxTOGGLEWATCHMINI"]
 BINDING_NAME_NxWATCHUSEITEM	= L["NxWATCHUSEITEM"]
 
-CBQUEST_TEMPLATE = QUEST_TEMPLATE_LOG
-CBQUEST_TEMPLATE.canHaveSealMaterial = nil
-
 local defaults = {
 	profile = {
 		Quest = {
@@ -176,9 +173,9 @@ local function QuestOptions ()
 			childGroups	= "tab",
 			args = {
 				quest = {
+					order = 1,
 					type = "group",
 					name = L["Quest Options"],
-					order = 1,
 					args = {
 						name = {
 							order = 1,
@@ -887,9 +884,9 @@ local function QuestOptions ()
 					},
 				},
 				watch = {
+					order = 2,
 					type = "group",
 					name = L["Watch Options"],
-					order = 2,
 					args = {
 						qwhide = {
 							order = 1,
@@ -1480,9 +1477,9 @@ local function QuestOptions ()
 					},
 				},
 				sounds = {
+					order = 3,
 					type = "group",
 					name = L["Sound Options"],
-					order = 3,
 					args = {
 						sndEnable = {
 							order = 1,
@@ -1626,9 +1623,9 @@ local function QuestOptions ()
 					},
 				},
 				database = {
+					order = 4,
 					type = "group",
 					name = L["Databases"],
-					order = 4,
 					args = {
 						title = {
 							order = 1,
@@ -2097,9 +2094,6 @@ function CarboniteQuest:OnInitialize()
 	NXQuest.Gather.UserLocale = GetLocale()
 
 	Nx.Quest:Init()
-	if Nx.qdb.profile.Quest.Enable then
-		Nx.Quest:HideUIPanel (_G["QuestMapFrame"])
-	end
 	CarboniteQuest:RegisterComm("carbmodule",Nx.Quest.OnChat_msg_addon)
 	Nx:AddToConfig("Quest Module",QuestOptions(),L["Quest Module"])
 	Nx.Quest:SetCols()
@@ -2211,15 +2205,6 @@ function Nx.Quest:Init()
 	-- DEBUG
 --	self.OldSelectQuestLogEntry = SelectQuestLogEntry
 --	SelectQuestLogEntry = Nx.Quest.SelectQuestLogEntry
-
-	-- Force it to create/enable and then we disable
-	GetUIPanelWidth (QuestMapFrame)
-	QuestMapFrame:SetAttribute ("UIPanelLayout-enabled", false)
-
-	if QuestLogDetailFrame then	-- Patch 3.2
-		GetUIPanelWidth (QuestLogDetailFrame)
-		QuestLogDetailFrame:SetAttribute ("UIPanelLayout-enabled", false)
-	end
 
 	local Map = Nx.Map
 
@@ -2777,9 +2762,7 @@ function Nx.Quest:Init()
 		["Bloodberry Bush"] = "Bloodberries",
 		["Erratic Sentry"] = "Erratic Sentries",
 	}
-	
-	hooksecurefunc ("ShowUIPanel", CarboniteQuest.ShowUIPanel)
-	hooksecurefunc ("HideUIPanel", CarboniteQuest.HideUIPanel)
+	self.QInit = true
 	Nx.Quest.OldWindow = ToggleQuestLog
 	function ToggleQuestLog(...)
 		local orig = IsAltKeyDown() and not self.IgnoreAlt
@@ -2787,39 +2770,16 @@ function Nx.Quest:Init()
 			orig = not orig
 		end
 		if orig then
-			if self.IsOrigOpen then
-				HideUIPanel(QuestMapFrame)
-			else
-				ShowUIPanel(QuestMapFrame)
-			end
+			Nx.Quest.OldWindow()
 		else
 			if self.IsOpen then
-				self.IsOpen = QuestMapFrame:IsShown()
-			end
-			if self.IsOpen then
-				HideUIPanel(QuestMapFrame)
+				Nx.Quest:HideUIPanel ()
 			else
-				ShowUIPanel(QuestMapFrame)
+				Nx.Quest:ShowUIPanel ()
 			end
 		end
 	end
 	
-end
-
-function CarboniteQuest.ShowUIPanel(frame)
-	if frame then
-		if frame == _G["QuestMapFrame"] and Nx.qdb.profile.Quest.Enable then
-			Nx.Quest:ShowUIPanel (frame)
-		end
-	end
-end
-
-function CarboniteQuest.HideUIPanel (frame)
-	if frame then
-		if frame == _G["QuestMapFrame"] and Nx.qdb.profile.Quest.Enable then
-			Nx.Quest:HideUIPanel (frame)
-		end
-	end
 end
 
 function Nx.Quest:ProcessQuestDB(questTotal)
@@ -2827,6 +2787,7 @@ function Nx.Quest:ProcessQuestDB(questTotal)
 		C_Timer.After(5, function() Nx.Quest:ProcessQuestDB(questTotal) end)
 		return
 	end
+	local Map = Nx.Map
 	local maxLoadLevel = Nx.qdb.profile.Quest.maxLoadLevel
 	local enFact = Nx.PlFactionNum == 1 and 1 or 2
 	local qLoadLevel = max(1, UnitLevel ("player") - Nx.qdb.profile.Quest.LevelsToLoad)
@@ -2904,6 +2865,8 @@ function Nx.Quest:ProcessQuestDB(questTotal)
 					end
 				end
 			end
+
+			-- Nx.prt ("Quest "..mungeId.." "..lvl)
 		end
 		for _, v in ipairs (grp) do
 			local name, id = Nx.Split ("^", v)
@@ -3149,7 +3112,7 @@ end
 
 function Nx.Quest:Menu_OnShowQuest()
 
-	ShowUIPanel (QuestMapFrame)
+	self:ShowUIPanel ()
 
 	self.List.Bar:Select (1)
 
@@ -3241,8 +3204,29 @@ end
 -------------------------------------------------------------------------------
 
 function Nx.Quest:SelectBlizz (qi)
+
 	if qi > 0 then
+
 		SelectQuestLogEntry (qi)
+		local _, _, _, _, _, _, _, qid = GetQuestLogTitle(qi)
+		-- This is needed by "seal" emblem quests
+		-- in blizzard QuestInfo_Display()
+		NxQuestD.questID = qid
+
+--		QuestLog_SetSelection (qi)
+--		QuestLog_Update()
+
+--[[
+		local lh = getglobal ("LightHeaded")
+		if lh then
+
+			if lh["SelectQuestLogEntry"] then
+				lh["SelectQuestLogEntry"](lh)
+			elseif lh["QuestLogTitleButton_OnClick"] then
+				lh["QuestLogTitleButton_OnClick"](lh)
+			end
+		end
+--]]
 	end
 end
 
@@ -3395,79 +3379,80 @@ function Nx.Quest:RecordQuestsLog()
 
 		for curi, cur in ipairs (curq) do
 
-			local qi = cur.QI
-			if qi > 0 then
-
+			for qn = 1, qcnt do
+				local qi = qn
 				local title, level, groupCnt, isHeader, isCollapsed, isComplete, _, questID = GetQuestLogTitle (qi)
-				title = self:ExtractTitle (title)
+				if cur.QId == questID then
+					title = self:ExtractTitle (title)
 
---				Nx.prt ("QD %s %s %s %s", title, qi, isHeader and "H1" or "H0", isComplete and "C1" or "C0")
+	--				Nx.prt ("QD %s %s %s %s", title, qi, isHeader and "H1" or "H0", isComplete and "C1" or "C0")
 
-				if cur.Title == title then		-- Still matches?
+					if cur.Title == title then		-- Still matches?
 
-					local change
+						local change
 
-					if isComplete == 1 and not cur.Complete then
-						Nx.prt (L["Quest Complete '%s'"], title)
+						if isComplete == 1 and not cur.Complete then
+							Nx.prt (L["Quest Complete '%s'"], title)
 
-						if Nx.qdb.profile.Quest.SndPlayCompleted then
-							self:PlaySound()
+							if Nx.qdb.profile.Quest.SndPlayCompleted then
+								self:PlaySound()
+							end
+
+							if Nx.qdb.profile.Quest.AutoTurnInAC and cur.IsAutoComplete then
+								ShowQuestComplete (qi)
+							end
+
+							if Nx.qdb.profile.QuestWatch.RemoveComplete and not cur.IsAutoComplete then
+								self.Watch:RemoveWatch (cur.QId, cur.QI)
+								self.Watch:Update()
+								change = false
+							else
+								change = true
+							end
+
 						end
 
-						if Nx.qdb.profile.Quest.AutoTurnInAC and cur.IsAutoComplete then
-							ShowQuestComplete (qi)
-						end
+						local lbCnt = GetNumQuestLeaderBoards (qi)
+						for n = 1, lbCnt do
 
-						if Nx.qdb.profile.QuestWatch.RemoveComplete and not cur.IsAutoComplete then
-							self.Watch:RemoveWatch (cur.QId, cur.QI)
-							self.Watch:Update()
-							change = false
-						else
-							change = true
-						end
+							local desc, _typ, done = GetQuestLogLeaderBoard (n, qi)
 
-					end
+							--V4
 
-					local lbCnt = GetNumQuestLeaderBoards (qi)
-					for n = 1, lbCnt do
+							if desc and (desc ~= cur[n] or done ~= cur[n + 100]) then
 
-						local desc, _, done = GetQuestLogLeaderBoard (n, qi)
+	--							Nx.prt ("Q Change %s->%s", desc, cur[n] or "nil")
 
-						--V4
-
-						if desc and (desc ~= cur[n] or done ~= cur[n + 100]) then
-
---							Nx.prt ("Q Change %s->%s", desc, cur[n] or "nil")
-
-							if Nx.qdb.profile.QuestWatch.AddChanged then
-								if change == nil then
-									change = true
+								if Nx.qdb.profile.QuestWatch.AddChanged then
+									if change == nil then
+										change = true
+									end
 								end
+
+								local s1, _, oldCnt = strfind (cur[n] or "", "(%d+)/%d+ ")
+								if s1 then
+									oldCnt = tonumber (oldCnt)
+								end
+
+								local s1, _, newCnt = strfind (desc, "(%d+)/%d+ ")
+								if s1 then
+	--								Nx.prt ("%s %s", i, total)
+									newCnt = tonumber (newCnt)
+								end
+
+								if done or (oldCnt and newCnt and newCnt > oldCnt) then
+									self:Capture (curi, n)
+								end
+
+								lastChanged = cur
+
+								partySend = true
 							end
-
-							local s1, _, oldCnt = strfind (cur[n] or "", "(%d+)/%d+ ")
-							if s1 then
-								oldCnt = tonumber (oldCnt)
-							end
-
-							local s1, _, newCnt = strfind (desc, "(%d+)/%d+ ")
-							if s1 then
---								Nx.prt ("%s %s", i, total)
-								newCnt = tonumber (newCnt)
-							end
-
-							if done or (oldCnt and newCnt and newCnt > oldCnt) then
-								self:Capture (curi, n)
-							end
-
-							lastChanged = cur
-
-							partySend = true
 						end
-					end
 
-					if change and Nx.qdb.profile.QuestWatch.AddChanged then
-						self.Watch:Add (curi)
+						if change and Nx.qdb.profile.QuestWatch.AddChanged then
+							self.Watch:Add (curi)
+						end
 					end
 				end
 			end
@@ -3947,6 +3932,18 @@ function Nx.Quest:ScanBlizzQuestDataZone()
 
 							local s = title
 							local obj = format ("nil|%s|32|%f|%f|6|6",mapId, x, y)
+							
+							local finddata = GetQuestPOILeaderBoard(objective, qi)
+							if finddata then
+								for i = 1, lbCnt do
+									local desc = GetQuestLogLeaderBoard(i, qi)
+									if desc == finddata then 
+										quest["Objectives"][i] = {obj}
+										lbCnt = 0   -- got it, don't do next loop
+										break
+									end
+								end
+							end
 
 							for i = 1, lbCnt do
 								quest["Objectives"][i] = {obj}
@@ -5351,20 +5348,23 @@ function Nx.Quest.List:Open()
 
 	-- Create window
 
-	local win = Nx.Window:Create ("NxQuestList")
+	local win = Nx.Window:Create ("NxQuestList", nil, nil, true)
 	self.Win = win
 
 	win:CreateButtons (true, true)
 	win:InitLayoutData (nil, -.24, -.15, -.52, -.65)
 
-	tinsert (UISpecialFrames, "QuestMapFrame")
 	tinsert (UISpecialFrames, win.Frm:GetName())
 
 	win.Frm:SetToplevel (true)
 	win.Frm:SetMinResize (250, 120)
 
 	win:SetUser (self, self.OnWin)
+	win:RegisterHide ()
 	win:RegisterEvent ("PLAYER_LOGIN", self.OnQuestUpdate)
+--	win:RegisterEvent ("QUEST_LOG_UPDATE", self.OnQuestUpdate)
+--  win:RegisterEvent ("QUEST_WATCH_UPDATE", self.OnQuestUpdate)
+	win:RegisterEvent ("QUEST_POI_UPDATE", self.OnQuestUpdate)
 	win:RegisterEvent ("UPDATE_FACTION", self.OnQuestUpdate)
 	win:RegisterEvent ("GARRISON_MISSION_COMPLETE_RESPONSE", self.OnQuestUpdate)
 	win:RegisterEvent ("WORLD_QUEST_COMPLETED_BY_SPELL", self.OnQuestUpdate)
@@ -5579,13 +5579,11 @@ function Nx.Quest.List:Open()
 
 	f:SetMovable (true)
 	f:EnableMouse (true)
+
 	f:SetFrameStrata ("MEDIUM")
+
 	local t = f:CreateTexture()
-	if Nx.qdb.profile.Quest.ScrollIMG then
-		t:SetTexture ("Interface\\QuestFrame\\QuestBG", true, true)
-	else
-		t:SetColorTexture(Nx.Util_str2rgba(Nx.qdb.profile.Quest.DetailBC))
-	end
+	t:SetColorTexture (.7, .7, .5, 1)
 	t:SetAllPoints (f)
 	t:SetTexCoord(0, .585, 0.02, .655)
 	f.texture = t
@@ -5710,71 +5708,59 @@ end
 
 -------------------------------------------------------------------------------
 
-function Nx.Quest:ShowUIPanel (frame)
-	if self.InShowUIPanel then
+function Nx.Quest:ShowMap ()
+	self.IsOrigOpen = true
+end
+
+function Nx.Quest:HideMap ()
+	self.IsOrigOpen = false
+end
+
+function Nx.Quest:ShowUIPanel ()
+	if self.InShowUIPanel or self.IsOpen then
 		return
 	end
 	self.InShowUIPanel = true
-	local detailFrm = QuestLogDetailFrame
-	local orig = IsAltKeyDown() and not self.IgnoreAlt
+
 	local opts = self.GOpts
-	if Nx.qdb.profile.Quest.UseAltLKey then
-		orig = not orig
-	end
-	if orig then	-- Show original quest log?
-		self.IsOrigOpen = true
-		frame:SetScale (1)
-		QuestMapFrame:SetAttribute ("UIPanelLayout-enabled", true)
-		Nx.Quest.OldWindow()
-		if detailFrm then
-			detailFrm:SetScale (1)
-		end
-		self:LightHeadedAttach (frame)
-	else
-		Nx.Quest.List:Refresh()
-		self.IsOpen = true
-		local win = self.List.Win
-		if win and not GameMenuFrame:IsShown() then
-			self:ExpandQuests()
-			local wf	= win.Frm
-			win:Show()
-			self.List:Update()
-			wf:Raise()
-			frame:Show()
-			if detailFrm then
-				detailFrm:SetScale (.1)
-			end
-			self:LightHeadedAttach (wf, true)
-		end
+	self.IsOpen = true
+	local win = self.List.Win
+
+	if win and not GameMenuFrame:IsShown() then
+
+		self:ExpandQuests()
+
+		local wf	= win.Frm
+
+--		Nx.prt ("LevS1 "..wf:GetFrameLevel().." "..ff:GetFrameLevel())
+
+		win:Show()
+		self.List:Update()
+		wf:Raise()
+
+--		Nx.prt ("LevS2 "..wf:GetFrameLevel().." "..ff:GetFrameLevel())
+
+--		Nx.prt ("LevS3 "..wf:GetFrameLevel().." "..ff:GetFrameLevel())
+
+		self:LightHeadedAttach (wf, true)
 	end
 	self.InShowUIPanel = false
 end
 
 -------------------------------------------------------------------------------
 
-function Nx.Quest:HideUIPanel (frame)
-	local orig = IsAltKeyDown() and not self.IgnoreAlt
-	if Nx.qdb.profile.Quest.UseAltLKey then
-		orig = not orig
+function Nx.Quest:HideUIPanel ()
+	self.IsOpen = false		
+
+	self.List.Win:Show (false)
+
+	if self.List.List:ItemGetNum() > 0 then
+		self.List.List:Empty()
 	end
-	if orig then
-		QuestMapFrame:SetAttribute ("UIPanelLayout-enabled", true)
-		Nx.Quest.OldWindow()
-		Nx.Quest.OldWindow()
-		self.IsOrigOpen = false
-	else
-		self.IsOpen = false
-		local detailFrm = QuestLogDetailFrame
-		if detailFrm then
-			detailFrm:SetScale (1)
-		end
-		self.List.Win:Show (false)
-		if self.List.List:ItemGetNum() > 0 then
-			self.List.List:Empty()
-		end
-		self:RestoreExpandQuests()		-- Hide window first, then restore
-		self.LHAttached = nil
-	end
+
+	self:RestoreExpandQuests()		-- Hide window first, then restore
+
+	self.LHAttached = nil
 end
 
 function Nx.Quest:LightHeadedAttach (frm, attach, onlyLevels)
@@ -5939,9 +5925,8 @@ end
 
 function Nx.Quest.List:OnWin (typ)
 
-	if typ == "Close" then
-		HideUIPanel (QuestMapFrame)
---		QuestLogFrame:Hide()
+	if typ == "Close" or typ == "Hide" then
+		Nx.Quest:HideUIPanel ()
 	end
 end
 
@@ -6203,7 +6188,10 @@ end
 function Nx.Quest.List:OnSendQuestInfoTimer()
 
 	local qi = self.SendQInfoQI
-	local i, cur = qi > 0 and Nx.Quest:FindCurByIndex (qi) or nil, nil
+	local i, cur
+	if (qi > 0) then
+	    i, cur = Nx.Quest:FindCurByIndex (qi)
+	end
 
 	if not i then
 		return
@@ -6617,7 +6605,8 @@ function Nx.Quest.List:OnQuestUpdate (event, ...)
 		self:Refresh(event)
 		return
 	elseif event == "QUEST_ACCEPTED" then
-		if QuestGetAutoAccept() then
+		local auto = Nx.qdb.profile.Quest.AutoAccept
+		if auto and QuestGetAutoAccept() then
 			QuestFrameDetailPanel:Hide();
 			CloseQuest();
 		end
@@ -6635,13 +6624,16 @@ function Nx.Quest.List:OnQuestUpdate (event, ...)
 		if QuestGetAutoAccept() and QuestIsFromAreaTrigger() then
 
 			Quest:RecordQuestAcceptOrFinish()
-			CloseQuest();
+			local auto = Nx.qdb.profile.Quest.AutoAccept
+			if auto then
+				CloseQuest();
+			end
 --			Quest.AcceptQId = GetQuestID()
 --			Nx.prt ("QUEST_DETAIL %s", GetQuestID())
 			self:Refresh(event)
 		end
 
-	elseif event == "QUEST_LOG_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "WORLD_QUEST_COMPLETED_BY_SPELL" then
+	elseif event == "QUEST_LOG_UPDATE" or event == "QUEST_POI_UPDATE" or event == "UNIT_QUEST_LOG_CHANGED" or event == "WORLD_QUEST_COMPLETED_BY_SPELL" then
 
 --		Nx.prtStack ("QUpdate")
 --		Nx.prt ("#%d", GetNumQuestLogEntries())
@@ -7425,7 +7417,6 @@ function Nx.Quest.List:Update()
 		if data > 0 then
 			Nx.Quest:SelectBlizz (bit.band (data, 0xff))
 			NxQuestD:Show()
-
 			Quest:UpdateQuestDetails()
 		else
 			NxQuestD:Hide()
@@ -7590,7 +7581,7 @@ function Nx.Quest:UpdateIcons (map)
 
 	local tracking = self.IconTracking
 
-	if Nx.Tick % 10 == 0 then
+	if map.Tick % 10 == 0 then
 
 --		tracking = {}		-- garbage creator
 		wipe (tracking)
@@ -8188,12 +8179,14 @@ function Nx.Quest:UpdateQuestDetails()
 	QDetail = Nx:ScheduleTimer(self.UpdateQuestDetailsTimer,0,self)
 end
 
+local NX_QUEST_TEMPLATE_LOG = QUEST_TEMPLATE_LOG
+
 function Nx.Quest:UpdateQuestDetailsTimer()
 
-	--	Nx.prt ("UpdateQuestDetails")
-	QuestInfo_Display (CBQUEST_TEMPLATE, NXQuestLogDetailScrollChildFrame,nil,nil,"Carb")
+	QuestInfo_Display (NX_QUEST_TEMPLATE_LOG, NXQuestLogDetailScrollChildFrame, nil, nil, "Carb")
 
 	local r, g, b, a = Nx.Util_str2rgba (Nx.qdb.profile.Quest.DetailBC)
+	self.List.DetailsFrm.texture:SetColorTexture (r, g, b, a)
 
 	-- 0.18, 0.12, 0.06 parchment
 	local r, g, b = Nx.Util_str2rgba (Nx.qdb.profile.Quest.DetailTC)
@@ -8201,6 +8194,11 @@ function Nx.Quest:UpdateQuestDetailsTimer()
 	local t = {
 			"QuestInfoTitleHeader", "QuestInfoDescriptionHeader", "QuestInfoObjectivesHeader",
 			"QuestInfoDescriptionText", "QuestInfoObjectivesText", "QuestInfoGroupSize", "QuestInfoRewardText",
+--V4 fix!!!!!!!!!!!! replace???
+--			"QuestInfoHonorFrameReceiveText",
+--			"QuestInfoArenaPointsFrameReceiveText",
+--			"QuestInfoTalentFrameReceiveText",
+--			"QuestInfoXPFrameReceiveText",
 	}
 
 	for k, name in ipairs (t) do
@@ -8225,14 +8223,170 @@ function Nx.Quest:UpdateQuestDetailsTimer()
 
 	MapQuestInfoRewardsFrame["ItemChooseText"]:SetTextColor(r, g, b)
 	MapQuestInfoRewardsFrame["ItemReceiveText"]:SetTextColor(r, g, b)
---	MapQuestInfoRewardsFrame["SpellLearnText"]:SetTextColor(r, g, b)
 	MapQuestInfoRewardsFrame["PlayerTitleText"]:SetTextColor(r, g, b)
+
+	local spellLearnPool = MapQuestInfoRewardsFrame.spellHeaderPool
+	for spellHeader in spellLearnPool:EnumerateActive() do
+		spellHeader:SetTextColor(r, g, b)
+	end
 
 	for n = 1, 10 do
 		if _G["QuestInfoObjective" .. n] then
 			_G["QuestInfoObjective" .. n]:SetTextColor (r, g, b)
 		end
 	end
+
+--[[
+	-- 3.2
+
+	QuestFrame_SetAsLastShown (NxQuestDSC, NxQuestDSCSpacerFrame)
+
+	Nx.Quest:FrameItems_Update()
+
+	local questID = GetQuestLogSelection()
+	local questTitle = GetQuestLogTitle (questID) or ""
+
+	if IsCurrentQuestFailed() then
+		questTitle = questTitle.." - ("..FAILED..")"
+	end
+
+--	Nx.prt ("UpdateQuestDetails %s %s", questID or "nil", questTitle or "nil")
+
+	local title = NxQuestDSCQuestTitle
+	title:SetText (questTitle)
+
+	local _, relTo = NxQuestDSCSpacerFrame:GetPoint()
+	local corner = relTo == NxQuestDSC and "TOP" or "BOTTOM"
+	title:ClearAllPoints()
+	title:SetPoint ("TOP", relTo, corner, 0, -10)
+	title:SetPoint ("LEFT", NxQuestDSC, "LEFT", 0, 0)
+
+	local questDescription, questObjectives = GetQuestLogQuestText()
+	NxQuestDSCObjectivesText:SetText (questObjectives)
+
+	local questTimer = GetQuestLogTimeLeft()
+	if questTimer then
+--		QuestMapFrame.hasTimer = 1
+--		QuestMapFrame.timePassed = 0
+		NxQuestDSCTimerText:Show()
+		NxQuestDSCTimerText:SetText (TIME_REMAINING.." "..SecondsToTime (questTimer))
+		NxQuestDSCObjective1:SetPoint ("TOPLEFT", "NxQuestDSCTimerText", "BOTTOMLEFT", 0, -10)
+	else
+--		QuestLogFrame.hasTimer = nil
+		NxQuestDSCTimerText:Hide()
+		NxQuestDSCObjective1:SetPoint ("TOPLEFT", "NxQuestDSCObjectivesText", "BOTTOMLEFT", 0, -10)
+	end
+
+	-- Show Quest Watch if track quest is checked
+	local numObjectives = GetNumQuestLeaderBoards()
+
+	for i = 1, numObjectives do
+		local string = getglobal ("NxQuestDSCObjective"..i)
+		local text, typ, finished = GetQuestLogLeaderBoard (i)
+		if not text or strlen (text) == 0 then
+			text = typ
+		end
+		if finished then
+			string:SetTextColor (.2, .2, .2)
+			text = text.." ("..COMPLETE..")"
+		else
+			string:SetTextColor (0, 0, 0)
+		end
+		string:SetText(text)
+		string:Show()
+		QuestFrame_SetAsLastShown (string, NxQuestDSCSpacerFrame)
+	end
+
+	for i = numObjectives + 1, MAX_OBJECTIVES, 1 do
+		getglobal ("NxQuestDSCObjective"..i):Hide()
+	end
+
+	-- If there's money required then anchor and display it
+
+	if GetQuestLogRequiredMoney() > 0 then
+
+		if numObjectives > 0 then
+			NxQuestDSCRequiredMoneyText:SetPoint("TOPLEFT", "NxQuestDSCObjective"..numObjectives, "BOTTOMLEFT", 0, -4)
+		else
+			NxQuestDSCRequiredMoneyText:SetPoint("TOPLEFT", "NxQuestDSCObjectivesText", "BOTTOMLEFT", 0, -10)
+		end
+
+		MoneyFrame_Update("NxQuestDSCRequiredMoneyFrame", GetQuestLogRequiredMoney())
+
+		if GetQuestLogRequiredMoney() > GetMoney() then
+			-- Not enough cash
+			NxQuestDSCRequiredMoneyText:SetTextColor (0, 0, 0)
+			SetMoneyFrameColor ("NxQuestDSCRequiredMoneyFrame", 1, .1, .1)
+		else
+			NxQuestDSCRequiredMoneyText:SetTextColor (.2, .2, .2)
+			SetMoneyFrameColor ("NxQuestDSCRequiredMoneyFrame", 1, 1, 1)
+		end
+		NxQuestDSCRequiredMoneyText:Show()
+		NxQuestDSCRequiredMoneyFrame:Show()
+	else
+		NxQuestDSCRequiredMoneyText:Hide()
+		NxQuestDSCRequiredMoneyFrame:Hide()
+	end
+
+	if GetQuestLogGroupNum() > 0 then
+
+		local suggestedGroupString = format (QUEST_SUGGESTED_GROUP_NUM, GetQuestLogGroupNum())
+		NxQuestDSCSuggestedGroupNum:SetText (suggestedGroupString)
+		NxQuestDSCSuggestedGroupNum:Show()
+		NxQuestDSCSuggestedGroupNum:ClearAllPoints()
+
+		if GetQuestLogRequiredMoney() > 0 then
+			NxQuestDSCSuggestedGroupNum:SetPoint ("TOPLEFT", "NxQuestDSCRequiredMoneyText", "BOTTOMLEFT", 0, -4)
+		elseif numObjectives > 0 then
+			NxQuestDSCSuggestedGroupNum:SetPoint ("TOPLEFT", "NxQuestDSCObjective"..numObjectives, "BOTTOMLEFT", 0, -4)
+		elseif questTimer then
+			NxQuestDSCSuggestedGroupNum:SetPoint ("TOPLEFT", "NxQuestDSCTimerText", "BOTTOMLEFT", 0, -10)
+		else
+			NxQuestDSCSuggestedGroupNum:SetPoint ("TOPLEFT", "NxQuestDSCObjectivesText", "BOTTOMLEFT", 0, -10)
+		end
+	else
+		NxQuestDSCSuggestedGroupNum:Hide()
+	end
+
+	if GetQuestLogGroupNum() > 0 then
+		NxQuestDSCDescriptionTitle:SetPoint("TOPLEFT", "NxQuestDSCSuggestedGroupNum", "BOTTOMLEFT", 0, -10)
+
+	elseif GetQuestLogRequiredMoney() > 0 then
+		NxQuestDSCDescriptionTitle:SetPoint("TOPLEFT", "NxQuestDSCRequiredMoneyText", "BOTTOMLEFT", 0, -10)
+
+	elseif numObjectives > 0 then
+		NxQuestDSCDescriptionTitle:SetPoint("TOPLEFT", "NxQuestDSCObjective"..numObjectives, "BOTTOMLEFT", 0, -10)
+
+	else
+		if questTimer then
+			NxQuestDSCDescriptionTitle:SetPoint ("TOPLEFT", "NxQuestDSCTimerText", "BOTTOMLEFT", 0, -10)
+		else
+			NxQuestDSCDescriptionTitle:SetPoint ("TOPLEFT", "NxQuestDSCObjectivesText", "BOTTOMLEFT", 0, -10)
+		end
+	end
+
+	if questDescription then
+		NxQuestDSCQuestDescription:SetText (questDescription)
+		QuestFrame_SetAsLastShown (NxQuestDSCQuestDescription, NxQuestDSCSpacerFrame)
+	end
+
+	local numRewards = GetNumQuestLogRewards()
+	local numChoices = GetNumQuestLogChoices()
+	local money = GetQuestLogRewardMoney()
+
+	if numRewards + numChoices + money > 0 then
+		NxQuestDSCRewardTitleText:Show()
+--		QuestFrame_SetAsLastShown (NxQuestDSCRewardTitleText, NxQuestDSCSpacerFrame)
+
+	else
+		NxQuestDSCRewardTitleText:Hide()
+	end
+
+	NxQuestDScrollBar:SetValue (0)
+	NxQuestD:UpdateScrollChildRect()
+
+--]]
+
 end
 
 -------------------------------------------------------------------------------
@@ -8724,7 +8878,7 @@ end
 
 function Nx.Quest.Watch:Menu_OnShowQuest()
 
-	ShowUIPanel (QuestMapFrame)
+	Nx.Quest:ShowUIPanel()
 
 	Nx.Quest.List.Bar:Select (1)
 	Nx.Quest.List:Select (self.MenuQId, self.MenuQIndex)
@@ -9135,7 +9289,8 @@ function Nx.Quest.Watch:UpdateList()
 					end
 				end
 				local tasks = {}
-				if Nx.qdb.profile.QuestWatch.BonusTask then
+				if Nx.qdb.profile.QuestWatch.BonusTask and map.UpdateMapID then
+					if false then
 					local taskInfo = C_TaskQuest.GetQuestsForPlayerByMapID(map.UpdateMapID);
 					if taskInfo then
 						for i=1,#taskInfo do
@@ -9155,7 +9310,7 @@ function Nx.Quest.Watch:UpdateList()
 								--Nx.prt("====%s: %s, %s", title, x, y)
 								if numObjectives and numObjectives > 0 then
 									for j=1,numObjectives do
-										local text, objectiveType, finished = GetQuestObjectiveInfo (questId, j, false)
+										local text, objectiveType, finished = GetQuestObjectiveInfo (taskInfo[i].questId, j, false)
 										if objectiveType == "progressbar" then
 											list:ItemAdd(0)
 											list:ItemSetOffset (16, -1)
@@ -9185,6 +9340,7 @@ function Nx.Quest.Watch:UpdateList()
 							end
 						end
 					end
+					else
 					local taskInfo = GetNumQuestLogEntries()
 					if taskInfo > 0 then
 						for i=1,taskInfo do
@@ -9226,6 +9382,7 @@ function Nx.Quest.Watch:UpdateList()
 								list:ItemSet(2,"|cffff00ff-------------------------------")
 							end
 						end
+					end
 					end
 				end
 				if Nx.qdb.profile.QuestWatch.AchTrack then
@@ -9643,7 +9800,7 @@ function Nx.Quest.Watch:OnListEvent (eventName, val1, val2, click, but)
 
 				if IsAltKeyDown() then
 					Quest.IgnoreAlt = true
-					ShowUIPanel (QuestMapFrame)
+					Quest:ShowUIPanel ()
 					Quest.IgnoreAlt = nil
 					Quest.List.Bar:Select (1)
 					Quest.List:Select (qId, qIndex)

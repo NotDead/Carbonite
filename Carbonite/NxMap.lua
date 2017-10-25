@@ -140,7 +140,9 @@ function Nx.Map:Init()
 	self.PlFactionNum = plFaction == "A" and 0 or 1
 	self.PlFactionShort = plFaction == "A" and "Ally" or "Horde"
 	Nx.Map.Indoors = false
-
+	Nx.Map.InBugged = false
+	Nx.Map.InInstance = false
+	
 	self.Maps = {}
 	self.Created = false
 
@@ -600,8 +602,9 @@ function Nx.Map:Create (index)
 	win.Frm.NxMap = m
 
 	m.StartupShown = win:IsShown()
-	win.Frm:Show()	
-	
+	win.Frm:Show()
+	win.Frm:SetScript ("OnLeave", self.OnLeave)
+
 	-- Create main frame
 
 	local f = CreateFrame ("Frame", nil, UIParent)
@@ -1119,6 +1122,17 @@ function Nx.Map:Create (index)
 	m.Arch:SetBorderTexture( [[Interface\WorldMap\UI-ArchaeologyBlob-Outside]] )
 	m.Arch:SetBorderScalar( 0.15 )
 
+
+	local HBDPins = LibStub:GetLibrary("HereBeDragons-Pins-1.0", true)
+	if m.MMOwn and HandyNotes and HBDPins then
+		local mmAddonOverlay = CreateFrame("Frame", "NxMinimapAddonOverlay", m.TextScFrm:GetScrollChild())
+		mmAddonOverlay.GetZoom = Minimap.GetZoom
+		mmAddonOverlay.SetZoom = Minimap.SetZoom
+		mmAddonOverlay:Hide()
+		m.MMAddonOverlayFrm = mmAddonOverlay
+		HBDPins:SetMinimapObject(mmAddonOverlay)
+	end
+
 	Nx.Map.RMapId = 9000		-- Safe default
 	Nx.Map.UpdateMapID = 9000
 
@@ -1619,6 +1633,7 @@ function Nx.Map:InitFrames()
 		{ 1,1,1,1, 1,1,1,1, 1,1,1,1 },
 		{ 1,1,1,1, 1,1,1,1, 1,1,1,1 },
 		{ 1,1,1,1, 1,1,1,1, 1,1,1,1 },		
+		{ 1,1,1,1, 1,1,1,1, 1,1,1,1 },		
 	}
 
 	self.ContFrms = {}
@@ -1818,7 +1833,8 @@ function Nx.Map:MinimapOwnInit()
 		return
 	end
 	mm:SetMaskTexture ("textures\\MinimapMask")
-	self:MinimapNodeGlowInit()
+	-- Disable as 7.0 broke ability to reliably swap blip textures without artifacting
+	--self:MinimapNodeGlowInit()
 	Nx.Map:MinimapButtonShowUpdate (true)
 
 --	self.Win:RegisterEvent ("MINIMAP_UPDATE_ZOOM", self.OnEvent)
@@ -2207,6 +2223,8 @@ function Nx.Map:MinimapUpdate()
 			bugged = true
 		end
 	end
+	local bugChange = self.InBugged ~= bugged
+	self.InBugged = bugged;
 	if self.InstanceId then
 		al = 1
 	else
@@ -2219,30 +2237,25 @@ function Nx.Map:MinimapUpdate()
 		if Nx.InBG then
 			zoomType = 0
 		end
-		if indoorChange and Nx.db.profile.MiniMap.IndoorTogFullSize then
+		if (indoorChange and Nx.db.profile.MiniMap.IndoorTogFullSize) or (bugChange and Nx.db.profile.MiniMap.BuggedTogFullSize) then
+			--Nx.prt("Indoorchange:", indoorChange," City? ", info.City, "Indoor? ", indoors)
+			--Nx.prt("Bugchange:", bugChange," bug? ", bugged)
 			lOpts.NXMMFull = false
-			if not info.City and indoors then
+			if (indoors and Nx.db.profile.MiniMap.IndoorTogFullSize) or (bugged and Nx.db.profile.MiniMap.BuggedTogFullSize) then
 				lOpts.NXMMFull = true
 			end
 			self.MMMenuIFull:SetChecked (lOpts.NXMMFull)
 			Nx.Menu:CheckUpdate (self.MMMenuIFull)
-		end
-		if Nx.db.profile.MiniMap.BuggedTogFullSize then
-			if bugged then
-				lOpts.NXMMFull=true
-			else
-				lOpts.NXMMFull=false
-			end
-			self.MMMenuIFull:SetChecked(lOpts.NXMMFull)
-			Nx.Menu:CheckUpdate(self.MMMenuIFull)
 		end
 		if zoomType == 0 then
 			al = 1
 		end
 
 		if IsControlKeyDown() then
-			al = IsAltKeyDown() and 1 or .8
+			al = (IsAltKeyDown() or bugged) and 1 or .8
 			self.MMZoomChanged = true
+		elseif bugged and al ~= 1 then
+			al = 0
 		end
 	end
 
@@ -2367,6 +2380,13 @@ function Nx.Map:MinimapUpdateEnd()
 		self:MinimapUpdateDetachedFrms (self.Level + 1)
 		self.Level = self.Level + 2
 	end
+	
+	if self.MMAddonOverlayFrm then
+		self.MMAddonOverlayFrm:SetFrameLevel(self.Level)
+		self.Level = self.Level + 1
+		self.MMAddonOverlayFrm:SetAllPoints(Minimap);
+		self.MMAddonOverlayFrm:Show()
+	end
 
 	if self.MMZoomChanged then
 
@@ -2396,6 +2416,9 @@ function Nx.Map:MinimapUpdateEnd()
 --		if Gatherer then
 --			Nx.Timer:Start ("Gatherer", .1, self, self.OnGathererTimer)
 --		end
+		if self.MMAddonOverlayFrm then
+			HandyNotes:UpdateMinimap()
+		end
 	end
 
 	-- Transfer window and minimap scale
@@ -3387,9 +3410,21 @@ function Nx.Map:OnEvent (event, ...)
 		self.Arch:Show()
 		self.QuestWin:Hide()
 	elseif event == "ZONE_CHANGED" then
+		if not WorldMapFrame:IsShown() then
+			SetMapToCurrentZone()
+		end
 		Nx.Map.Indoors = false
 	elseif event == "ZONE_CHANGED_INDOORS" then
+		if not WorldMapFrame:IsShown() then
+			SetMapToCurrentZone()
+		end
 		Nx.Map.Indoors = true
+	end
+end
+
+function Nx.Map:OnLeave (frame)
+	if not WorldMapFrame:IsShown() then
+		SetMapToCurrentZone()
 	end
 end
 
@@ -3868,7 +3903,7 @@ function Nx.Map.OnUpdate (this, elapsed)	--V4 this
 
 	--
 
-	if Nx.Tick % 3 == 0 then	-- Do less often, since tip makes garbage
+	if map.Tick % 3 == 0 then	-- Do less often, since tip makes garbage
 
 		local tip = format (" %s", cursorLocStr)
 		if map.Debug and winx then
@@ -3964,9 +3999,6 @@ function Nx.Map:UpdateWorld()
 	end
 
 	self.NeedWorldUpdate = false
-	if not Nx.Map.MouseOver then		
-		SetMapToCurrentZone()
-	end
 	local mapId = self:GetCurrentMapId()
 	local winfo = self.MapWorldInfo[mapId]
 	if not winfo then
@@ -4880,7 +4912,7 @@ function Nx.Map:Update (elapsed)
 
 	-- Scan. Switch maps if needed. Do at end so we dont glitch
 
-	if Nx.Tick % self.ScanContinentsMod == 3 then
+	if self.Tick % self.ScanContinentsMod == 3 then
 		self:ScanContinents()
 	end
 
@@ -4929,29 +4961,20 @@ function Nx.Map:SetInstanceMap (mapId)
 	end
 end
 
-function Nx.Map:GetNumDungeonMapLevels()
-	local maps = { GetNumDungeonMapLevels() }
-	local first = GetNumDungeonMapLevels()
-	if not first then
-		if GetCurrentMapDungeonLevel() == 0 then
-			return 0,0
-		end
-		return 1, 1
-	end
-	local count = 0
-	for _ in pairs(maps) do 
-		count = count + 1
-	end	
-	return count, 1
-end
-
 function Nx.Map:GetInstanceMapTextures(mapId)
 	local areaId = mapId
 	if areaId then
 		SetMapByID(areaId)
 		local mapName = GetMapInfo();
-		local levels, first = Nx.Map:GetNumDungeonMapLevels()
+		local levels = { GetNumDungeonMapLevels() }
+		local first
 		local useTerrainMap = DungeonUsesTerrainMap()
+		if #levels == 0 then
+			first = 0
+		else
+			first = levels[1]
+		end
+		levels = #levels
 		if (areaId == 824) then
 			levels = 7
 			first = 1
@@ -4964,10 +4987,15 @@ function Nx.Map:GetInstanceMapTextures(mapId)
 			levels = 1
 			first = 1
 		end
-		Nx.Map.InstanceInfo[mapId] = {}		
-		if not first then 
+		if (areaId == 1076) then
+			levels = 3
 			first = 1
 		end
+		if (areaId == 1100) then
+			levels = 4
+			first = 1
+		end
+		Nx.Map.InstanceInfo[mapId] = {}
 		for i=first,max(first,first+levels-1) do
 			SetDungeonMapLevel(i)
 			local level = useTerrainMap and i-1 or i
@@ -4994,9 +5022,18 @@ function Nx.Map:SwitchRealMap (id)
 	end
 
 	if Nx.db.profile.MiniMap.InstanceTogFullSize then
-		self.LOpts.NXMMFull = false
-		if self:IsInstanceMap (id) then
-			self.LOpts.NXMMFull = true
+		local inInstance = self:IsInstanceMap(id)
+		local instanceChange = self.InInstance ~= inInstance
+		self.InInstance = inInstance;
+		if instanceChange then
+			self.LOpts.NXMMFull = inInstance
+		end
+	else
+		if self:IsInstanceMap(id) then
+			s = self.Scale
+			self.Scale = 120.0
+		else
+			self.Scale = self.RealScale
 		end
 	end
 	local map = Nx.Map:GetMap (1)
@@ -5023,6 +5060,7 @@ function Nx.Map:ScanContinents()
 	--
 
 	ObjectiveTrackerFrame:UnregisterEvent ("WORLD_MAP_UPDATE")
+	WorldMapFrame:UnregisterEvent ("WORLD_MAP_UPDATE")
 
 	local hideT = {}
 	hideT[0] = true	-- WotLK has 0 index POIs for named locations
@@ -5127,6 +5165,7 @@ function Nx.Map:ScanContinents()
 	end
 
 	ObjectiveTrackerFrame:RegisterEvent ("WORLD_MAP_UPDATE")
+	WorldMapFrame:RegisterEvent ("WORLD_MAP_UPDATE")
 end
 
 --------
@@ -5868,7 +5907,7 @@ function Nx.Map:CheckWorldHotspotsType (wx, wy, quad)
 	for n, spot in ipairs (quad) do
 		if wx >= spot.WX1 and wx <= spot.WX2 and wy >= spot.WY1 and wy <= spot.WY2 then
 
-			local curId = self:GetCurrentMapId()
+			local curId = self:GetRealMapId()
 
 			if spot.MapId ~= curId then
 
@@ -8309,15 +8348,16 @@ function Nx.Map:InitTables()
 	--V403
 
 	Nx.Map.MapZones = {
-		 [0] = {13,14,466,485,751,862,962,1007,0,-1},
+		 [0] = {13,14,466,485,751,862,962,1007,1184,0,-1},
 		 [1] = {772,894,43,181,464,476,890,42,381,101,4,141,891,182,121,795,241,606,9,11,321,888,261,607,81,161,41,471,61,362,720,201,889,281},
 		 [2] = {614,16,17,19,29,866,32,892,27,34,23,30,462,463,545,611,24,341,499,610,35,895,37,864,36,684,685,28,615,480,21,301,689,893,38,673,26,502,20,708,709,700,382,613,22,39,40},
 		 [3] = {475,465,477,479,473,481,478,467},
 		 [4] = {486,510,504,488,490,491,541,492,493,495,501,496},
-		 [5] = {640,605,544,737,823},
+		 [5] = {640,605,544,737,823,1057},
 		 [6] = {858,929,928,857,809,905,903,806,873,808,951,810,811,807},
 		 [7] = {978,941,976,949,971,950,947,948,1009,946,945,970,1011},
-		 [8] = {1014,1015,1017,1018,1021,1024, 1028, 1033, 1080},
+		 [8] = {1014,1015,1017,1018,1021,1024, 1028, 1033, 1068, 1080,1096},
+		 [9] = {1135,1170,1171},
 		 [90] = {401,461,482,540,860,512,856,736,626,443,935,1010},
 		 [100] = {},
 	}
@@ -8335,8 +8375,8 @@ function Nx.Map:InitTables()
 
 	-- Support maps with multiple level
 
-	self.ContCnt = 8
-	continentNums = { 1, 2, 3, 4, 5, 6, 7, 8, 90 }
+	self.ContCnt = 9
+	continentNums = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 90 }
 	for n = 1, 1999 do
 		local winfo = worldInfo[mapId]
 		if not winfo then
@@ -8679,7 +8719,7 @@ function Nx.Map:SetCurrentMap (mapId)
 					local cont = self.MapWorldInfo[mapId].Cont
 					local zone = self.MapWorldInfo[mapId].Zone
 
-					if not self.MapWorldInfo[mapId].City and (not cont or not zone or mapId == self:GetRealBaseMapId() or mapId == self:GetRealMapId()) then						
+					if not self.MapWorldInfo[mapId].City and (not cont or not zone or mapId == self:GetRealBaseMapId()) then
 						SetMapToCurrentZone()		-- This fixes the Scarlet Enclave map selection, so we get player position						
 						SetDungeonMapLevel (1)
 					else
@@ -8694,7 +8734,6 @@ function Nx.Map:SetCurrentMap (mapId)
 		if self:IsInstanceMap(mapId) then	-- Instance?
 			local aid = mapId
 			if aid then
-				self.MapId = 0				-- Force change (needed?)
 				if mapId == self:GetRealBaseMapId() then
 					SetMapToCurrentZone()					
 				else
@@ -9842,8 +9881,9 @@ end
 --------
 
 function Nx.Map.Dock:MinimapDetachFrms()
+	local map = Nx.Map:GetMap (1)
 
-	if Nx.Tick % self.UpdateMod ~= 0 then
+	if map.Tick % self.UpdateMod ~= 0 then
 		return
 	end
 
@@ -10624,9 +10664,11 @@ function Nx.Map.MoveWorldMap()
 	Nx.Map.WMDF:SetAllPoints()
 	NXWorldMapUnitPositionFrame:SetParent("WMDF")
 	NXWorldMapUnitPositionFrame:SetAllPoints()
+	if not Nx.Map:GetMap(1).LOpts.NXMMFull then
 	Nx.Map:UpdatePlayerPositions()
+	end
 	
-	if Nx.db.char.Map.ShowRaidBoss then
+	if Nx.db.char.Map.ShowRaidBoss and not Nx.Map:GetMap(1).LOpts.NXMMFull then
 		local width = Nx.Map.WMDF:GetWidth()
 		local height = Nx.Map.WMDF:GetHeight()
 
@@ -10677,9 +10719,7 @@ function Nx.Map:UpdatePlayerPositions() -- Copy of the local defined player arro
 	NXWorldMapUnitPositionFrame:ClearUnits()
 
 	local r, g, b = CheckColorOverrideForPVPInactive("player", timeNow, 1, 1, 1)
-	NXWorldMapUnitPositionFrame:SetPlayerArrowSize(24)
-	local playerArrowSize = NXWorldMapUnitPositionFrame:GetPlayerArrowSize()
-	NXWorldMapUnitPositionFrame:AddUnit("player", "Interface\\WorldMap\\WorldMapArrow", playerArrowSize, playerArrowSize, r, g, b, 1, 7, true)
+	NXWorldMapUnitPositionFrame:AddUnit("player", "Interface\\WorldMap\\WorldMapArrow", 24, 24, r, g, b, 1, 7, true)
 
 	local isInRaid = IsInRaid()
 	local memberCount = 0
@@ -10693,15 +10733,13 @@ function Nx.Map:UpdatePlayerPositions() -- Copy of the local defined player arro
 		unitBase = "party"
 	end
 
-	local groupMemberSize = NXWorldMapUnitPositionFrame:GetGroupMemberSize()
-
 	for i = 1, memberCount do
 		local unit = unitBase..i
 		if UnitExists(unit) and not UnitIsUnit(unit, "player") then
 			local atlas = UnitInSubgroup(unit) and "WhiteCircle-RaidBlips" or "WhiteDotCircle-RaidBlips"
 			local class = select(2, UnitClass(unit))
 			local r, g, b = CheckColorOverrideForPVPInactive(unit, timeNow, GetClassColor(class))
-			NXWorldMapUnitPositionFrame:AddUnitAtlas(unit, atlas, groupMemberSize, groupMemberSize, r, g, b, 1)
+			NXWorldMapUnitPositionFrame:AddUnitAtlas(unit, atlas, 24, 24, r, g, b, 1)
 		end
 	end
 

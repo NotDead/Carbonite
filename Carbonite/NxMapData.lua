@@ -79,6 +79,12 @@ Map.MapInfo = {
 		X = 3000,
 		Y = -900,
 	},
+	[9] = {
+		Name = "Argus",
+		FileName = "Argus",
+		X = 7400,
+		Y = -6200,
+	},
 	[90] = {
 		Name = "BG",
 		X = 2000,
@@ -1395,13 +1401,13 @@ Map.MapWorldInfo = {
 		Overlay = "ashranhordefactionhub",
 	},
 	[1014] = {
-		Scale = 1.6589 / 1.3,
-		X = -1000,
-		Y = 100,
+		Scale = 1.75,
+		ScaleAdjust = 0.94,
+		MMOutside = true,
+		X = -980,
+		Y = 110,
 		Overlay = "dalaran70",		
 		City = true,
-		Alpha = .85,
-		ScaleAdjust = 1.3,
 		MapLevel = 1,		
 	},
 	[1015] = {
@@ -1454,13 +1460,72 @@ Map.MapWorldInfo = {
 		 Overlay = "suramar",
 		 Name = L["Suramar"],
 	},
+	[1057] = {
+		Scale = 2.6666,
+		ScaleAdjust = 1 / 1.275,
+		MMOutside = true,
+		X = 640,
+		Y = 120,
+		Name = L["The Maelstrom"],		-- Shaman order hall
+		City = true,
+	},
+	[1068] = {
+		Scale = 0.9,
+		ScaleAdjust = 0.63,
+		MMOutside = true,
+		X = 170,
+		Y = 0,
+		Name = L["Hall of the Guardian"],	-- Mage order hall
+		City = true,
+	},
+	[1076] = {
+		BaseMap = 529,
+	},
 	[1080] = {
-		Scale = 1.8625,
-		X = -960,
-		Y = -879.5832,
-		Explored = true,
-		City = true,		
-		Overlay = "thundertotem",
+		Scale = 1.75,
+		ScaleAdjust = 0.94,
+		MMOutside = true,
+		X = -965,
+		Y = -870,
+		Overlay = "ThunderTotem",
+		City = true,
+		MapLevel = 1,		
+	},
+	[1096] = {
+		Scale = 5.75,
+		X = -1220,
+		Y = 510,
+		Overlay = "azsunadungeonexterior",
+		Name = L["Eye of Azshara"],
+	},
+	[1100] = {
+		BaseMap = 799,
+	},
+	[1135] = {
+		 Scale = 7.4,
+		 X = -300,
+		 Y = -300,
+		 Overlay = "ArgusSurface",
+		 Name = L["Krokuun"],
+	},
+	[1170] = {
+		 Scale = 6.8,
+		 X = -550,
+		 Y = -1300,
+		 Overlay = "ArgusMacAree",
+		 Name = L["Mac'Aree"],
+	},
+	[1171] = {
+		 Scale = 6.8,
+		 X = -1900,
+		 Y = -700,
+		 Overlay = "ArgusCore",
+		 Name = L["Antoran Wastes"],
+	},
+	[1184] = {
+		Scale = 37.67636,
+		X = -2599.2078125,
+		Y = -1864.271875,
 	},	
 	[9005] = {		-- Blade's Edge Arena
 		Name = L["Blade's Edge Arena"],
@@ -3169,10 +3234,14 @@ Map.ZoneOverlays = {
 		["thastalah"] = "342,416,218,168",		
 	},
 	["brokenshore"] = {
-		["brokenshoresouth"] = "224,275,482,359",
-		["theblackcity"] = "257,95,478,328",
-		["thelosttemple"] = "613,126,337,289",
-		["tombofsargeras"] = "373,0,414,281",		
+		["thelosttemple"] = "632,169,308,244",
+		["felragestrand"] = "596,100,332,276",
+		["tombofsargeras"] = "500,0,312,301",		
+		["theweepingterrace"] = "350,13,276,213",
+		["brokenvalley"] = "254,84,338,322",
+		["soulruin"] = "389,180,338,270",
+		["deadwoodlanding"] = "220,260,182,245",
+		["deliverancepoint"] = "312,302,387,314",
 	},
 	["highmountain"] = {
 		["bloodhunthighlands"] = "307,75,297,250",
@@ -3207,6 +3276,18 @@ Map.ZoneOverlays = {
 	["mardumtheshatteredabyss"] = {
 		["mardumtheshatteredabyss"] = "0,0,1024,768",
 	},
+	["argussurface"] = {
+		["krokulhovel"] = "428,364,307,304",
+	},
+	["arguscore"] = {
+		["terminus"] = "535,238,467,430",
+	},
+	-- local zone = GetMapInfo()
+	-- print(string.format("[\"%s\"] = ", zone))
+	-- local n = GetNumMapOverlays() for i=1,n do
+	-- local fn, c, d, a, b = GetMapOverlayInfo(i)
+	-- print(string.format("[\"%s\"] = \"%d,%d,%d,%d\"", fn, a, b, c, d))  
+	-- end
 }
 
 --------
@@ -8427,6 +8508,13 @@ Map.MiniMapBlks = {
 		1117,
 		11, 17,
 		Map.MapWorldInfo[1007].X + Map.MapInfo[8].X + 380, Map.MapWorldInfo[1007].Y + Map.MapInfo[8].Y - 147.5,
+		"World\\Minimaps\\Troll Raid"
+	},
+	[9] = {
+		Map.BrokenIslesMapBlks,
+		1117,
+		11, 17,
+		Map.MapWorldInfo[1184].X + Map.MapInfo[9].X + 0, Map.MapWorldInfo[1184].Y + Map.MapInfo[9].Y - 0,
 		"World\\Minimaps\\Troll Raid"
 	},
 	[464] = {
